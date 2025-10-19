@@ -18,8 +18,8 @@
  */
 
  /**
- * @namespace Coruh::Calculator
- * @brief Namespace for calculator functions and classes.
+ * @namespace Coruh::personal-finance
+ * @brief Namespace for personal-finance functions and classes.
  *
- * This namespace contains a collection of calculator functions and classes that provide commonly-used functionality.
+ * This namespace contains a collection of personal-finance functions and classes that provide commonly-used functionality.
  */

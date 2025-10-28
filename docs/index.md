@@ -1,4 +1,4 @@
-# personal-finance Project Library Generation and Testing Template
+# personal Project Library Generation and Testing Template
 
 ## Overview
 

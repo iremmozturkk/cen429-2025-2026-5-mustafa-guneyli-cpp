@@ -1,6 +1,6 @@
 # aka5g/CMakeLists.txt
 set(ROOT src)
-set(APPNAME personal-financeapp)
+set(APPNAME personalapp)
 
 message(STATUS "[${ROOT}/${APPNAME}] Module Processing...")
 
@@ -22,11 +22,11 @@ add_executable(${APPNAME} ${APP_HEADERS} ${APP_SOURCES}) # for dynamic library u
 
 target_include_directories(${APPNAME} PUBLIC
 						   ${CMAKE_CURRENT_SOURCE_DIR}/../utility/header
-						   ${CMAKE_CURRENT_SOURCE_DIR}/../personal-finance/header
+						   ${CMAKE_CURRENT_SOURCE_DIR}/../personal/header
 						   ${CMAKE_CURRENT_SOURCE_DIR}/header)
 
 # Add any dependencies or compile options specific to lock6g
-target_link_libraries(${APPNAME} PRIVATE personal-finance utility)
+target_link_libraries(${APPNAME} PRIVATE personal utility)
 
 install(TARGETS ${APPNAME}
         LIBRARY DESTINATION lib

@@ -1,23 +1,23 @@
 /**
- * @file personal-finance.h
+ * @file personal.h
  * 
  * @brief Provides functions for math. utilities
  */
 
-#ifndef personal-finance_H
-#define personal-finance_H
+#ifndef personal_H
+#define personal_H
 
 #include "../../utility/header/commonTypes.h"
 
 namespace Coruh
 {
-    namespace personal-finance
+    namespace personal
     {
         /**
-            @class personal-finance
+            @class personal
             @brief Provides Basic functions for various operations.
         */
-        class personal-finance
+        class personal
         {
         public:
             /**
@@ -59,4 +59,4 @@ namespace Coruh
     }
 }
 
-#endif // personal-finance_H
+#endif // personal_H

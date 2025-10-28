@@ -1,6 +1,6 @@
 # Set the minimum required CMake version
 cmake_minimum_required(VERSION 3.12)
-project(personal-financeapp)
+project(personalapp)
 
 set(ROOT src)
 
@@ -40,18 +40,18 @@ set(CRYPTOPP_BUILD_SHARED OFF)
 set(CRYPTOPP_USE_MASTER_BRANCH FALSE)
 
 option(ENABLE_UTILITY "Enable Utility Module" ON)
-option(ENABLE_personal-finance "Enable personal-finance Module" ON)
-option(ENABLE_personal-finance_APP "Enable personal-finance Application" ON)
+option(ENABLE_personal "Enable personal Module" ON)
+option(ENABLE_personal_APP "Enable personal Application" ON)
 option(ENABLE_TESTS "Enable All Tests" ON)
 
 # Configure tests
 add_compile_definitions(ENABLE_UTILITY_TEST)
-add_compile_definitions(ENABLE_personal-finance_TEST)
+add_compile_definitions(ENABLE_personal_TEST)
 
 
 # Configure logs
 add_compile_definitions(ENABLE_UTILITY_LOGGER)
-add_compile_definitions(ENABLE_personal-finance_LOGGER)
+add_compile_definitions(ENABLE_personal_LOGGER)
 
 # Set the output directories for Debug and Release configurations
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/build/Debug)
@@ -101,13 +101,13 @@ if(ENABLE_UTILITY)
 endif()
 
 # Logger submodule
-if(ENABLE_personal-finance)
-	add_subdirectory(${ROOT}/personal-finance)
+if(ENABLE_personal)
+	add_subdirectory(${ROOT}/personal)
 endif()
 
 # BigInteger for Crypto submodule
-if(ENABLE_personal-finance_APP)
-	add_subdirectory(${ROOT}/personal-financeapp)
+if(ENABLE_personal_APP)
+	add_subdirectory(${ROOT}/personalapp)
 endif()
 
 # Tests

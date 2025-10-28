@@ -1,6 +1,6 @@
 /**
- * @file personal-financeapp.cpp
- * @brief A simple program to demonstrate the usage of the personal-finance model class.
+ * @file personalapp.cpp
+ * @brief A simple program to demonstrate the usage of the personal model class.
  *
  * This program process infix notations and calculate operations
  *
@@ -12,9 +12,9 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
-#include "../../personal-finance/header/personal-finance.h"  // Adjust this include path based on your project structure
+#include "../../personal/header/personal.h"  // Adjust this include path based on your project structure
 
-using namespace Coruh::personal-finance;
+using namespace Coruh::personal;
 
 bool isOperator(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/');
@@ -71,14 +71,14 @@ double evaluatePostfix(const std::string& postfix) {
             double result;
 
             switch(token[0]) {
-                case '+': result = personal-finance::add(a, b); break;
-                case '-': result = personal-finance::subtract(a, b); break;
-                case '*': result = personal-finance::multiply(a, b); break;
+                case '+': result = personal::add(a, b); break;
+                case '-': result = personal::subtract(a, b); break;
+                case '*': result = personal::multiply(a, b); break;
                 case '/': 
                     if (b == 0) {
                         throw std::invalid_argument("Division by zero is not allowed.");
                     }
-                    result = personal-finance::divide(a, b); break;
+                    result = personal::divide(a, b); break;
             }
 
             s.push(result);

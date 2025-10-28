@@ -32,8 +32,8 @@ cd ..
 echo Running Test Executable
 
 call .\publish_win\bin\utility_tests.exe
-call .\publish_win\bin\personal-finance_tests.exe
-call .\publish_win\bin\personal-financeapp.exe
+call .\publish_win\bin\personal_tests.exe
+call .\publish_win\bin\personalapp.exe
 
 echo Files and folders copied successfully.
 
@@ -42,14 +42,14 @@ tar -czvf release\windows-publish-binaries.tar.gz -C publish .
 
 echo Package Publish Windows Binaries
 call robocopy src\utility\header "build_win\build\Release" /E
-call robocopy src\personal-finance\header "build_win\build\Release" /E
-call robocopy src\personal-financeapp\header "build_win\build\Release" /E
+call robocopy src\personal\header "build_win\build\Release" /E
+call robocopy src\personalapp\header "build_win\build\Release" /E
 tar -czvf release_win\windows-release-binaries.tar.gz -C build_win\build\Release .
 
 echo Package Publish Debug Windows Binaries
 call robocopy src\utility\header "build_win\build\Debug" /E
-call robocopy src\personal-finance\header "build_win\build\Debug" /E
-call robocopy src\personal-financeapp\header "build_win\build\Debug" /E
+call robocopy src\personal\header "build_win\build\Debug" /E
+call robocopy src\personalapp\header "build_win\build\Debug" /E
 tar -czvf release_win\windows-debug-binaries.tar.gz -C build_win\build\Debug .
 
 echo ....................

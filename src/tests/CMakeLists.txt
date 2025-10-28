@@ -37,8 +37,8 @@ if(ENABLE_UTILITY)
 	add_subdirectory(utility)
 endif()
 
-# personal-finance tests
-if(ENABLE_personal-finance)
-	add_subdirectory(personal-finance)
+# personal tests
+if(ENABLE_personal)
+	add_subdirectory(personal)
 endif()
 

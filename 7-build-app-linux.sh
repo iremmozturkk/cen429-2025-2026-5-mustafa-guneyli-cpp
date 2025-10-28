@@ -56,11 +56,11 @@ python3 -m coverxygen --xml-dir ./docs/doxygentestlinux/xml --src-dir ./ --forma
 
 
 echo "Run Documentation Coverage Report Generator for Library"
-reportgenerator "-title:personal-finance Library Documentation Coverage Report (Linux)" "-reports:**/lcov_doxygen_lib_linux.info" "-targetdir:docs/coverxygenliblinux" "-reporttypes:Html" "-filefilters:-*.md;-*.xml;-*[generated];-*build*" "-historydir:report_doc_lib_hist_linux"
+reportgenerator "-title:personal Library Documentation Coverage Report (Linux)" "-reports:**/lcov_doxygen_lib_linux.info" "-targetdir:docs/coverxygenliblinux" "-reporttypes:Html" "-filefilters:-*.md;-*.xml;-*[generated];-*build*" "-historydir:report_doc_lib_hist_linux"
 reportgenerator "-reports:**/lcov_doxygen_lib_linux.info" "-targetdir:assets/doccoverageliblinux" "-reporttypes:Badges" "-filefilters:-*.md;-*.xml;-*[generated];-*build*"
 
 echo "Run Documentation Coverage Report Generator for Unit Tests"
-reportgenerator "-title:personal-finance Library Test Documentation Coverage Report (Linux)" "-reports:**/lcov_doxygen_test_linux.info" "-targetdir:docs/coverxygentestlinux" "-reporttypes:Html" "-filefilters:-*.md;-*.xml;-*[generated];-*build*" "-historydir:report_doc_test_hist_linux"
+reportgenerator "-title:personal Library Test Documentation Coverage Report (Linux)" "-reports:**/lcov_doxygen_test_linux.info" "-targetdir:docs/coverxygentestlinux" "-reporttypes:Html" "-filefilters:-*.md;-*.xml;-*[generated];-*build*" "-historydir:report_doc_test_hist_linux"
 reportgenerator "-reports:**/lcov_doxygen_test_linux.info" "-targetdir:assets/doccoveragetestlinux" "-reporttypes:Badges" "-filefilters:-*.md;-*.xml;-*[generated];-*build*"
 
 
@@ -82,8 +82,8 @@ cd ..
 echo Running Test Executable
 
 ./publish_linux/bin/utility_tests
-./publish_linux/bin/personal-finance_tests
-./publish_linux/bin/personal-financeapp
+./publish_linux/bin/personal_tests
+./publish_linux/bin/personalapp
 
 echo "Generate Test Coverage Data"
 lcov --rc lcov_branch_coverage=1 --capture --initial --directory . --output-file coverage_linux.info
@@ -93,10 +93,10 @@ lcov --rc lcov_branch_coverage=1 --remove coverage_linux.info 'tests/*' --output
 lcov --rc lcov_branch_coverage=1 --list coverage_linux.info
 
 echo "Generate Test Report"
-reportgenerator "-title:personal-finance Library Unit Test Coverage Report (Linux)" "-reports:**/coverage_linux.info" "-targetdir:docs/coveragereportliblinux" "-reporttypes:Html" 
+reportgenerator "-title:personal Library Unit Test Coverage Report (Linux)" "-reports:**/coverage_linux.info" "-targetdir:docs/coveragereportliblinux" "-reporttypes:Html" 
 
-"-sourcedirs:src/utility/src;src/utility/header;src/personal-finance/src;src/personal-finance/header;src/personal-financeapp/src;src/personal-financeapp/header;src/tests/utility;src/tests/personal-finance" "-filefilters:-*minkernel\*;-*gtest*;-*a\_work\*;-*gtest-*;-*gtest.cc;-*gtest.h;-*build*" "-historydir:report_test_hist_linux"
-reportgenerator "-reports:**/coverage_linux.info" "-targetdir:assets/codecoverageliblinux" "-reporttypes:Badges" "-sourcedirs:src/utility/src;src/utility/header;src/personal-finance/src;src/personal-finance/header;src/personal-financeapp/src;src/personal-financeapp/header;src/tests/utility;src/tests/personal-finance" "-filefilters:-*minkernel\*;-*gtest*;-*a\_work\*;-*gtest-*;-*gtest.cc;-*gtest.h;-*build*"
+"-sourcedirs:src/utility/src;src/utility/header;src/personal/src;src/personal/header;src/personalapp/src;src/personalapp/header;src/tests/utility;src/tests/personal" "-filefilters:-*minkernel\*;-*gtest*;-*a\_work\*;-*gtest-*;-*gtest.cc;-*gtest.h;-*build*" "-historydir:report_test_hist_linux"
+reportgenerator "-reports:**/coverage_linux.info" "-targetdir:assets/codecoverageliblinux" "-reporttypes:Badges" "-sourcedirs:src/utility/src;src/utility/header;src/personal/src;src/personal/header;src/personalapp/src;src/personalapp/header;src/tests/utility;src/tests/personal" "-filefilters:-*minkernel\*;-*gtest*;-*a\_work\*;-*gtest-*;-*gtest.cc;-*gtest.h;-*build*"
 
 echo "Copy the 'assets' folder and its contents to 'docs' recursively"
 cp -R assets "docs/assets"
@@ -115,13 +115,13 @@ tar -czvf release_linux/linux-publish-binaries.tar.gz -C publish_linux .
 echo "Package Publish Linux Binaries"
 mkdir -p build_linux/build/Release
 cp -R src/utility/header build_linux/build/Release
-cp -R src/personal-finance/header build_linux/build/Release
+cp -R src/personal/header build_linux/build/Release
 tar -czvf release_linux/linux-release-binaries.tar.gz -C build_linux/build/Release .
 
 echo "Package Publish Debug Linux Binaries"
 mkdir -p build_linux/build/Debug
 cp -R src/utility/header build_linux/build/Debug
-cp -R src/personal-finance/header build_linux/build/Debug
+cp -R src/personal/header build_linux/build/Debug
 tar -czvf release_linux/linux-debug-binaries.tar.gz -C build_linux/build/Debug .
 
 echo "Package Publish Test Coverage Report"

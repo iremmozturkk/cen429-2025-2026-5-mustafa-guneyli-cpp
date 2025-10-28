@@ -1,11 +1,11 @@
-//#define ENABLE_personal-finance_TEST  // Uncomment this line to enable the personal-finance tests
+//#define ENABLE_personal_TEST  // Uncomment this line to enable the personal tests
 
 #include "gtest/gtest.h"
-#include "../../personal-finance/header/personal-finance.h"  // Adjust this include path based on your project structure
+#include "../../personal/header/personal.h"  // Adjust this include path based on your project structure
 
-using namespace Coruh::personal-finance;
+using namespace Coruh::personal;
 
-class personal-financeTest : public ::testing::Test {
+class personalTest : public ::testing::Test {
 protected:
 	void SetUp() override {
 		// Setup test data
@@ -16,28 +16,28 @@ protected:
 	}
 };
 
-TEST_F(personal-financeTest, TestAdd) {
-	double result = personal-finance::add(5.0, 3.0);
+TEST_F(personalTest, TestAdd) {
+	double result = personal::add(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 8.0);
 }
 
-TEST_F(personal-financeTest, TestSubtract) {
-	double result = personal-finance::subtract(5.0, 3.0);
+TEST_F(personalTest, TestSubtract) {
+	double result = personal::subtract(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 2.0);
 }
 
-TEST_F(personal-financeTest, TestMultiply) {
-	double result = personal-finance::multiply(5.0, 3.0);
+TEST_F(personalTest, TestMultiply) {
+	double result = personal::multiply(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 15.0);
 }
 
-TEST_F(personal-financeTest, TestDivide) {
-	double result = personal-finance::divide(6.0, 3.0);
+TEST_F(personalTest, TestDivide) {
+	double result = personal::divide(6.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 2.0);
 }
 
-TEST_F(personal-financeTest, TestDivideByZero) {
-	EXPECT_THROW(personal-finance::divide(5.0, 0.0), std::invalid_argument);
+TEST_F(personalTest, TestDivideByZero) {
+	EXPECT_THROW(personal::divide(5.0, 0.0), std::invalid_argument);
 }
 
 /**
@@ -48,7 +48,7 @@ TEST_F(personal-financeTest, TestDivideByZero) {
  * @return int The exit status of the program.
  */
 int main(int argc, char** argv) {
-#ifdef ENABLE_personal-finance_TEST
+#ifdef ENABLE_personal_TEST
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 #else

@@ -1,11 +1,11 @@
 /**
- * @file personal-financeapp.h
- * @brief personal-finance Application header file
+ * @file personalapp.h
+ * @brief personal Application header file
  *
  */
 
-#ifndef personal-finance_APP_H
-#define personal-finance_APP_H
+#ifndef personal_APP_H
+#define personal_APP_H
 
 
-#endif // personal-finance_APP_H
+#endif // personal_APP_H

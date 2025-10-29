@@ -17,27 +17,27 @@ protected:
 };
 
 TEST_F(personalTest, TestAdd) {
-	double result = personal::add(5.0, 3.0);
+	double result = FinanceMath::add(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 8.0);
 }
 
 TEST_F(personalTest, TestSubtract) {
-	double result = personal::subtract(5.0, 3.0);
+	double result = FinanceMath::subtract(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 2.0);
 }
 
 TEST_F(personalTest, TestMultiply) {
-	double result = personal::multiply(5.0, 3.0);
+	double result = FinanceMath::multiply(5.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 15.0);
 }
 
 TEST_F(personalTest, TestDivide) {
-	double result = personal::divide(6.0, 3.0);
+	double result = FinanceMath::divide(6.0, 3.0);
 	EXPECT_DOUBLE_EQ(result, 2.0);
 }
 
 TEST_F(personalTest, TestDivideByZero) {
-	EXPECT_THROW(personal::divide(5.0, 0.0), std::invalid_argument);
+    EXPECT_THROW(FinanceMath::divide(5.0, 0.0), std::invalid_argument);
 }
 
 /**

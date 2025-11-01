@@ -41,6 +41,9 @@ namespace Coruh {
         private:
             sqlite3* db;
             std::string lastError;
+            
+            // 🛡️ VERİ GÜVENLİĞİ: Dosya izinleri yönetimi
+            bool setSecureFilePermissions(const std::string& dbPath);
 
             // Kopyalama ve atamayı engelle
             DatabaseManager(const DatabaseManager&) = delete;

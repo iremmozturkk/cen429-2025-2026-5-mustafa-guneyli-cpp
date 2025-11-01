@@ -1,6 +1,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "../header/database.h"
+#include "../header/data_security.hpp"  // 🛡️ Veri Güvenliği modülü
 #include "../../sqlite3/sqlite3.h"
 #include <iostream>
 
@@ -12,18 +13,49 @@ DatabaseManager::~DatabaseManager() {
     close();
 }
 
+// 🛡️ VERİ GÜVENLİĞİ: Dosya izinlerini sıkılaştır (data_security modülü)
+bool DatabaseManager::setSecureFilePermissions(const std::string& dbPath) {
+    // DataSecurity modülündeki fonksiyonu kullan
+    return Coruh::DataSecurity::setSecureFilePermissions(dbPath);
+}
+
 bool DatabaseManager::open(const std::string& dbPath) {
     if (db != nullptr) {
         close();
     }
 
+    // 🛡️ VERİ GÜVENLİĞİ: Güvenli dosya oluşturma
+#ifndef _WIN32
+    // Unix: umask ile başlangıç izinlerini ayarla
+    mode_t old_umask = umask(0077); // rwx------
+#endif
+
     int rc = sqlite3_open(dbPath.c_str(), &db);
+
+#ifndef _WIN32
+    umask(old_umask); // Restore
+#endif
+
     if (rc != SQLITE_OK) {
         lastError = sqlite3_errmsg(db);
         sqlite3_close(db);
         db = nullptr;
         return false;
     }
+
+    // 🛡️ VERİ GÜVENLİĞİ: Dosya izinlerini sıkılaştır
+    setSecureFilePermissions(dbPath);
+
+    // 🛡️ VERİ GÜVENLİĞİ: SQLite güvenlik pragma'ları
+    execute("PRAGMA journal_mode = WAL;");           // Write-Ahead Logging (concurrent access)
+    execute("PRAGMA foreign_keys = ON;");            // Foreign key integrity
+    execute("PRAGMA secure_delete = ON;");           // Silinen verileri disk'ten temizle
+    execute("PRAGMA auto_vacuum = INCREMENTAL;");    // Disk footprint minimize
+    execute("PRAGMA temp_store = MEMORY;");          // Geçici dosyalar RAM'de
+    execute("PRAGMA synchronous = FULL;");           // Veri bütünlüğü garantisi
+    
+    // 🛡️ VERİ GÜVENLİĞİ: Busy handler (race condition önleme)
+    sqlite3_busy_timeout(db, 5000); // 5 saniye timeout
 
     return true;
 }

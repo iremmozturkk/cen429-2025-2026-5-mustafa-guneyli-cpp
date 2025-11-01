@@ -8,6 +8,8 @@
 #include "../header/personalapp.h"
 #include "../../personal/header/personal.h"
 #include "../../personal/header/database.h"
+// 🛡️ VERİ GÜVENLİĞİ: Merkezi güvenlik modülü
+#include "../../personal/header/data_security.hpp"
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -21,10 +23,13 @@
 using namespace Coruh::personal;
 
 namespace {
-    // Şifre girişi için maskeleme fonksiyonu (Windows)
+    // 🛡️ VERİ GÜVENLİĞİ: Şifre girişi için güvenli maskeleme (buffer limit)
     std::string getPasswordMasked() {
 #ifdef _WIN32
+        const size_t MAX_PASSWORD_LENGTH = 128; // Maksimum şifre uzunluğu
         std::string password;
+        password.reserve(MAX_PASSWORD_LENGTH);
+        
         char ch;
         while (true) {
             ch = _getch(); // Karakteri ekrana yazdırmadan oku
@@ -36,6 +41,11 @@ namespace {
                     std::cout << "\b \b"; // Ekrandan sil
                 }
             } else if (ch >= 32 && ch <= 126) { // Yazdırılabilir karakterler
+                // 🛡️ VERİ GÜVENLİĞİ: Maksimum uzunluk kontrolü
+                if (password.length() >= MAX_PASSWORD_LENGTH) {
+                    std::cout << "\a"; // Beep (limit aşıldı)
+                    continue;
+                }
                 password += ch;
                 std::cout << '*'; // Yıldız göster
             }
@@ -44,8 +54,14 @@ namespace {
         return password;
 #else
         // Linux/Mac için basit versiyon (maskeleme yok)
+        const size_t MAX_PASSWORD_LENGTH = 128;
         std::string password;
         std::getline(std::cin, password);
+        
+        // 🛡️ VERİ GÜVENLİĞİ: Maksimum uzunluk kontrolü
+        if (password.length() > MAX_PASSWORD_LENGTH) {
+            password = password.substr(0, MAX_PASSWORD_LENGTH);
+        }
         return password;
 #endif
     }
@@ -150,60 +166,96 @@ namespace {
                 return -1; // Çıkış
             }
             else if (choice == 1) {
-                // KAYIT OL
+                // 🛡️ VERİ GÜVENLİĞİ: Güvenli kayıt (input validation)
                 clearScreen();
                 std::cout << u8"\n=== KAYIT OL ===\n";
-                std::string username, password, email;
+                std::string username, email;
                 
-                std::cout << u8"Kullanıcı adı: ";
+                std::cout << u8"Kullanıcı adı (3-32 karakter, alfanumerik): ";
                 std::getline(std::cin, username);
                 
-                std::cout << u8"Şifre: ";
-                password = getPasswordMasked();
+                // 🛡️ VERİ GÜVENLİĞİ: Username validation (data_security modülü)
+                if (!Coruh::DataSecurity::validateInput(username, Coruh::DataSecurity::InputType::USERNAME)) {
+                    std::cout << u8"\n⚠ Geçersiz kullanıcı adı! 3-32 karakter, alfanumerik olmalı.\n";
+                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cin.get();
+                    continue;
+                }
+                
+                std::cout << u8"Şifre (min 8 karakter): ";
+                std::string password = getPasswordMasked();
+                
+                // 🛡️ VERİ GÜVENLİĞİ: Password strength check
+                if (password.length() < 8) {
+                    std::cout << u8"\n⚠ Şifre en az 8 karakter olmalıdır!\n";
+                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cin.get();
+                    continue;
+                }
                 
                 std::cout << u8"E-posta (isteğe bağlı): ";
                 std::getline(std::cin, email);
-
-                if (username.empty() || password.empty()) {
-                    std::cout << u8"\n⚠ Kullanıcı adı ve şifre boş olamaz!\n";
+                
+                // 🛡️ VERİ GÜVENLİĞİ: Email validation (data_security modülü)
+                if (!email.empty() && !Coruh::DataSecurity::validateInput(email, Coruh::DataSecurity::InputType::EMAIL)) {
+                    std::cout << u8"\n⚠ Geçersiz e-posta formatı!\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
                     continue;
                 }
 
-                if (auth.registerUser(db, username, password, email)) {
+                // 🛡️ VERİ GÜVENLİĞİ: SecureString ile hassas veri yönetimi (data_security modülü)
+                Coruh::DataSecurity::SecureString securePassword(password);
+                
+                if (auth.registerUser(db, username, securePassword.get(), email)) {
                     std::cout << u8"\n✓ Kayıt başarılı! Şimdi giriş yapabilirsiniz.\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
                 } else {
-                    std::cout << u8"\n⚠ Kayıt başarısız! Kullanıcı adı zaten kullanımda olabilir.\n";
+                    std::cout << u8"\n⚠ Kayıt başarısız! Kullanıcı adı zaten kullanımda veya geçersiz veri.\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
                 }
+                
+                // Hassas verileri temizle
+                password.clear();
+                password.shrink_to_fit();
             }
             else if (choice == 2) {
-                // GİRİŞ YAP
+                // 🛡️ VERİ GÜVENLİĞİ: Güvenli giriş
                 clearScreen();
                 std::cout << u8"\n=== GİRİŞ YAP ===\n";
-                std::string username, password;
+                std::string username;
                 
                 std::cout << u8"Kullanıcı adı: ";
                 std::getline(std::cin, username);
                 
                 std::cout << u8"Şifre: ";
-                password = getPasswordMasked();
+                std::string password = getPasswordMasked();
 
-                int userId = auth.loginUser(db, username, password);
+                // 🛡️ VERİ GÜVENLİĞİ: SecureString ile password yönetimi (data_security modülü)
+                Coruh::DataSecurity::SecureString securePassword(password);
+                
+                int userId = auth.loginUser(db, username, securePassword.get());
                 if (userId > 0) {
                     std::cout << u8"\n✓ Giriş başarılı! Hoş geldiniz, " << username << "!\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
+                    
+                    // Hassas verileri temizle
+                    password.clear();
+                    password.shrink_to_fit();
+                    
                     return userId; // Başarılı giriş
                 } else {
                     std::cout << u8"\n⚠ Giriş başarısız! Kullanıcı adı veya şifre hatalı.\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
                 }
+                
+                // Hassas verileri temizle
+                password.clear();
+                password.shrink_to_fit();
             }
             else {
                 std::cout << u8"Geçersiz seçim!\n";
@@ -226,11 +278,22 @@ void runApplication() {
     DatabaseManager db;
     bool dbOpened = false;
     
+    // 📂 Veritabanı dosyası - çalışma dizininde (build klasöründe)
+    const std::string dbFileName = "personal_finance.db";
+    
     // Veritabanını aç ve tabloları oluştur
-    if (db.open("personal_finance.db")) {
+    if (db.open(dbFileName)) {
         if (db.createTables()) {
             dbOpened = true;
             std::cout << u8"✓ Veritabanı başarıyla açıldı ve hazır.\n";
+            std::cout << u8"📂 Veritabanı dosyası: " << dbFileName << "\n";
+#ifdef _WIN32
+            // Windows'ta tam yolu göster
+            char fullPath[MAX_PATH];
+            if (GetCurrentDirectoryA(MAX_PATH, fullPath)) {
+                std::cout << u8"📍 Konum: " << fullPath << "\\" << dbFileName << "\n";
+            }
+#endif
         } else {
             std::cout << u8"⚠ Veritabanı tabloları oluşturulamadı: " << db.getLastError() << "\n";
         }
@@ -308,8 +371,14 @@ void runApplication() {
                 double a; std::cout << "Gelir tutarı: ";
                 if (!(std::cin >> a)) { clearCin(); break; } clearCin();
                 budget.addIncome(a);
-                std::cout << "Gelir eklendi.\n";
-                if (dbOpened) budget.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Gelir eklendi.\n";
+                if (dbOpened) {
+                    if (budget.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 2) {
                 std::string cat; double a;
@@ -317,8 +386,14 @@ void runApplication() {
                 std::cout << "Tutar: ";
                 if (!(std::cin >> a)) { clearCin(); break; } clearCin();
                 budget.addExpense(cat, a);
-                std::cout << "Gider eklendi.\n";
-                if (dbOpened) budget.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Gider eklendi.\n";
+                if (dbOpened) {
+                    if (budget.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 3) {
                 std::string cat; double lim;
@@ -326,8 +401,14 @@ void runApplication() {
                 std::cout << "Limit: ";
                 if (!(std::cin >> lim)) { clearCin(); break; } clearCin();
                 budget.setCategoryLimit(cat, lim);
-                std::cout << "Limit ayarlandı.\n";
-                if (dbOpened) budget.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Limit ayarlandı.\n";
+                if (dbOpened) {
+                    if (budget.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 4) {
                 std::cout << "Toplam gelir: " << budget.getTotalIncome() << "\n";
@@ -362,8 +443,14 @@ void runApplication() {
                 std::cout << "Maliyet (birim): ";
                 if (!(std::cin >> inv.costBasisPerUnit)) { clearCin(); break; } clearCin();
                 portfolio.addInvestment(inv);
-                std::cout << "Yatırım eklendi.\n";
-                if (dbOpened) portfolio.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Yatırım eklendi.\n";
+                if (dbOpened) {
+                    if (portfolio.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 2) {
                 std::cout << "Toplam değer: " << portfolio.getTotalMarketValue() << "\n";
@@ -390,8 +477,14 @@ void runApplication() {
                 std::cout << "Hedef tutar: ";
                 if (!(std::cin >> t)) { clearCin(); break; } clearCin();
                 goals.addGoal(n, t);
-                std::cout << "Hedef eklendi.\n";
-                if (dbOpened) goals.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Hedef eklendi.\n";
+                if (dbOpened) {
+                    if (goals.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 2) {
                 std::string n; double a;
@@ -399,8 +492,14 @@ void runApplication() {
                 std::cout << "Katkı tutarı: ";
                 if (!(std::cin >> a)) { clearCin(); break; } clearCin();
                 goals.contribute(n, a);
-                std::cout << "Katkı işlendi.\n";
-                if (dbOpened) goals.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Katkı işlendi.\n";
+                if (dbOpened) {
+                    if (goals.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 3) {
                 for (const auto& g : goals.getGoals()) {
@@ -433,8 +532,14 @@ void runApplication() {
                 if (!(std::cin >> d.minMonthlyPayment)) { clearCin(); break; } clearCin();
                 d.paidSoFar = 0.0;
                 debts.addDebt(d);
-                std::cout << "Borç eklendi.\n";
-                if (dbOpened) debts.saveToDatabase(db, currentUserId);
+                std::cout << u8"✓ Borç eklendi.\n";
+                if (dbOpened) {
+                    if (debts.saveToDatabase(db, currentUserId)) {
+                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                    } else {
+                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                    }
+                }
             }
             else if (s == 2) {
                 std::cout << "Toplam anapara: " << debts.getTotalPrincipal() << "\n";
@@ -451,7 +556,34 @@ void runApplication() {
         }
     }
 
-    std::cout << "Güle güle!\n";
+    // 💾 Çıkış öncesi tüm verileri kaydet
+    if (dbOpened && currentUserId > 0) {
+        std::cout << u8"\n💾 Verileriniz kaydediliyor...\n";
+        bool saveSuccess = true;
+        
+        if (!budget.saveToDatabase(db, currentUserId)) {
+            std::cout << u8"⚠ Bütçe verileri kaydedilemedi!\n";
+            saveSuccess = false;
+        }
+        if (!portfolio.saveToDatabase(db, currentUserId)) {
+            std::cout << u8"⚠ Portföy verileri kaydedilemedi!\n";
+            saveSuccess = false;
+        }
+        if (!goals.saveToDatabase(db, currentUserId)) {
+            std::cout << u8"⚠ Hedef verileri kaydedilemedi!\n";
+            saveSuccess = false;
+        }
+        if (!debts.saveToDatabase(db, currentUserId)) {
+            std::cout << u8"⚠ Borç verileri kaydedilemedi!\n";
+            saveSuccess = false;
+        }
+        
+        if (saveSuccess) {
+            std::cout << u8"✓ Tüm verileriniz başarıyla kaydedildi.\n";
+        }
+    }
+
+    std::cout << u8"\nGüle güle!\n";
 }
 
 int main() {

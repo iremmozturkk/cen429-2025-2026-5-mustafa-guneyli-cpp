@@ -2,6 +2,7 @@
 
 #include "../header/personal.h"
 #include "../header/database.h"
+#include "../header/data_security.hpp"  // 🛡️ Veri Güvenliği modülü
 #include "../../sqlite3/sqlite3.h"
 #include <stdexcept>
 #include <algorithm>
@@ -11,24 +12,28 @@
 using namespace Coruh::personal;
 
 // ---- UserAuth ----
+// 🛡️ VERİ GÜVENLİĞİ: data_security modülünü kullan
 std::string UserAuth::hashPassword(const std::string& password) {
-    // Basit hash fonksiyonu (Production için bcrypt, Argon2 veya PBKDF2 kullanılmalı)
-    // Bu sadece demo amaçlıdır!
-    std::hash<std::string> hasher;
-    size_t hash = hasher(password + "SALT_2024"); // Sabit salt (gerçekte rastgele olmalı)
-    
-    std::ostringstream oss;
-    oss << std::hex << std::setw(16) << std::setfill('0') << hash;
-    return oss.str();
+    // DataSecurity modülündeki PBKDF2 benzeri hash fonksiyonunu kullan
+    return Coruh::DataSecurity::hashPassword(password, 10000);
 }
 
 bool UserAuth::verifyPassword(const std::string& password, const std::string& hash) {
     return hashPassword(password) == hash;
 }
 
+// 🛡️ VERİ GÜVENLİĞİ: data_security modülü ile güvenli kayıt
 bool UserAuth::registerUser(DatabaseManager& db, const std::string& username, 
                            const std::string& password, const std::string& email) {
     if (!db.isOpen()) return false;
+    
+    // 🛡️ VERİ GÜVENLİĞİ: Input validation (data_security modülü)
+    if (!Coruh::DataSecurity::validateInput(username, Coruh::DataSecurity::InputType::USERNAME)) {
+        return false;
+    }
+    if (!email.empty() && !Coruh::DataSecurity::validateInput(email, Coruh::DataSecurity::InputType::EMAIL)) {
+        return false;
+    }
     
     // Kullanıcı adı zaten var mı kontrol et
     User existingUser;
@@ -36,8 +41,14 @@ bool UserAuth::registerUser(DatabaseManager& db, const std::string& username,
         return false; // Kullanıcı zaten var
     }
     
-    // Şifreyi hashle
-    std::string passHash = hashPassword(password);
+    // 🛡️ VERİ GÜVENLİĞİ: SecureString ile şifreyi güvenli yönet
+    Coruh::DataSecurity::SecureString securePassword(password);
+    std::string passHash = hashPassword(securePassword.get());
+    
+    // 🛡️ VERİ GÜVENLİĞİ: Email'i şifrele
+    const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
+    std::string encryptedEmail = email.empty() ? "" : 
+        Coruh::DataSecurity::encryptData(email, EMAIL_KEY);
     
     // Yeni kullanıcı ekle
     sqlite3_stmt* stmt = nullptr;
@@ -49,30 +60,47 @@ bool UserAuth::registerUser(DatabaseManager& db, const std::string& username,
     
     sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, passHash.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, email.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, encryptedEmail.c_str(), -1, SQLITE_TRANSIENT);
     
     bool success = (sqlite3_step(stmt) == SQLITE_DONE);
     sqlite3_finalize(stmt);
     
+    // 🛡️ VERİ GÜVENLİĞİ: Hassas verileri otomatik temizlenir (SecureString destructor)
+    
     return success;
 }
 
+// 🛡️ VERİ GÜVENLİĞİ: data_security modülü ile güvenli login
 int UserAuth::loginUser(DatabaseManager& db, const std::string& username, 
                        const std::string& password) {
     if (!db.isOpen()) return -1;
     
+    // 🛡️ VERİ GÜVENLİĞİ: SecureString ile password yönetimi
+    Coruh::DataSecurity::SecureString securePassword(password);
+    
     User user;
-    if (!getUserByUsername(db, username, user)) {
-        return -1; // Kullanıcı bulunamadı
+    bool userFound = getUserByUsername(db, username, user);
+    
+    // 🛡️ VERİ GÜVENLİĞİ: Timing attack önleme - her durumda hash hesapla
+    bool passwordValid = false;
+    if (userFound) {
+        passwordValid = verifyPassword(securePassword.get(), user.passwordHash);
+    } else {
+        // Kullanıcı bulunamadıysa da aynı sürede hash hesapla (timing attack önleme)
+        std::string dummyHash = hashPassword(securePassword.get());
+        (void)dummyHash; // Unused variable warning
     }
     
-    if (!verifyPassword(password, user.passwordHash)) {
-        return -1; // Şifre yanlış
+    // Hassas verileri otomatik temizlenir (SecureString destructor)
+    
+    if (!userFound || !passwordValid) {
+        return -1; // Hata (detay verme - user enumeration önleme)
     }
     
-    return user.id; // Başarılı giriş, user ID döndür
+    return user.id; // Başarılı giriş
 }
 
+// 🛡️ VERİ GÜVENLİĞİ: Null pointer kontrolü ve email şifre çözme
 bool UserAuth::getUserById(DatabaseManager& db, int userId, User& user) {
     if (!db.isOpen()) return false;
     
@@ -88,9 +116,24 @@ bool UserAuth::getUserById(DatabaseManager& db, int userId, User& user) {
     bool found = false;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         user.id = sqlite3_column_int(stmt, 0);
-        user.username = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        user.passwordHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        user.email = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        
+        // 🛡️ VERİ GÜVENLİĞİ: Null pointer kontrolü
+        const unsigned char* usernameText = sqlite3_column_text(stmt, 1);
+        const unsigned char* passwordText = sqlite3_column_text(stmt, 2);
+        const unsigned char* emailText = sqlite3_column_text(stmt, 3);
+        
+        user.username = usernameText ? reinterpret_cast<const char*>(usernameText) : "";
+        user.passwordHash = passwordText ? reinterpret_cast<const char*>(passwordText) : "";
+        
+        // 🛡️ VERİ GÜVENLİĞİ: Email'i şifreli formdan çöz
+        if (emailText) {
+            const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
+            std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
+            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, EMAIL_KEY);
+        } else {
+            user.email = "";
+        }
+        
         found = true;
     }
     
@@ -98,6 +141,7 @@ bool UserAuth::getUserById(DatabaseManager& db, int userId, User& user) {
     return found;
 }
 
+// 🛡️ VERİ GÜVENLİĞİ: Null pointer kontrolü ve email şifre çözme
 bool UserAuth::getUserByUsername(DatabaseManager& db, const std::string& username, User& user) {
     if (!db.isOpen()) return false;
     
@@ -113,9 +157,24 @@ bool UserAuth::getUserByUsername(DatabaseManager& db, const std::string& usernam
     bool found = false;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         user.id = sqlite3_column_int(stmt, 0);
-        user.username = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        user.passwordHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        user.email = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        
+        // 🛡️ VERİ GÜVENLİĞİ: Null pointer kontrolü
+        const unsigned char* usernameText = sqlite3_column_text(stmt, 1);
+        const unsigned char* passwordText = sqlite3_column_text(stmt, 2);
+        const unsigned char* emailText = sqlite3_column_text(stmt, 3);
+        
+        user.username = usernameText ? reinterpret_cast<const char*>(usernameText) : "";
+        user.passwordHash = passwordText ? reinterpret_cast<const char*>(passwordText) : "";
+        
+        // 🛡️ VERİ GÜVENLİĞİ: Email'i şifreli formdan çöz
+        if (emailText) {
+            const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
+            std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
+            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, EMAIL_KEY);
+        } else {
+            user.email = "";
+        }
+        
         found = true;
     }
     

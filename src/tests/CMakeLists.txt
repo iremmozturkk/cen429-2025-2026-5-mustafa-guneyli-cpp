@@ -8,6 +8,9 @@
 # Include GoogleTest
 set(GTEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/googletest)
 
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
 # Add GoogleTest as a subdirectory
 add_subdirectory(${GTEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/googletest-build EXCLUDE_FROM_ALL)
 

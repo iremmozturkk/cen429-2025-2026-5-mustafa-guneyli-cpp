@@ -24,8 +24,21 @@ target_include_directories(${LIBNAME} PUBLIC
 						   ${CMAKE_CURRENT_SOURCE_DIR}/../utility/header
 						   ${CMAKE_CURRENT_SOURCE_DIR}/header)
 
+# Windows MSVC runtime library settings
+if(MSVC)
+    set_target_properties(${LIBNAME} PROPERTIES
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    )
+endif()
+
 # Add any dependencies or compile options specific to crypto
-target_link_libraries(${LIBNAME} PRIVATE utility)
+if(SQLite3_FOUND)
+    target_link_libraries(${LIBNAME} PRIVATE utility SQLite::SQLite3)
+    target_compile_definitions(${LIBNAME} PRIVATE USE_SYSTEM_SQLITE3)
+elseif(USE_SQLITE3_AMALGAMATION)
+    target_link_libraries(${LIBNAME} PRIVATE utility sqlite3)
+    target_include_directories(${LIBNAME} PRIVATE ${CMAKE_SOURCE_DIR}/src/sqlite3)
+endif()
 
 # creates preprocessor definition used for library exports
 add_compile_definitions("CORUH_personal_LIB_EXPORTS")

@@ -25,8 +25,19 @@ target_include_directories(${APPNAME} PUBLIC
 						   ${CMAKE_CURRENT_SOURCE_DIR}/../personal/header
 						   ${CMAKE_CURRENT_SOURCE_DIR}/header)
 
+# Windows MSVC runtime library settings
+if(MSVC)
+    set_target_properties(${APPNAME} PROPERTIES
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    )
+endif()
+
 # Add any dependencies or compile options specific to lock6g
-target_link_libraries(${APPNAME} PRIVATE personal utility)
+if(SQLite3_FOUND)
+    target_link_libraries(${APPNAME} PRIVATE personal utility SQLite::SQLite3)
+elseif(USE_SQLITE3_AMALGAMATION)
+    target_link_libraries(${APPNAME} PRIVATE personal utility sqlite3)
+endif()
 
 install(TARGETS ${APPNAME}
         LIBRARY DESTINATION lib

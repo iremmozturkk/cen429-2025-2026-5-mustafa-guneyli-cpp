@@ -44,6 +44,20 @@ option(ENABLE_personal "Enable personal Module" ON)
 option(ENABLE_personal_APP "Enable personal Application" ON)
 option(ENABLE_TESTS "Enable All Tests" ON)
 
+# SQLite3 dependency
+find_package(SQLite3)
+if(NOT SQLite3_FOUND)
+    message(STATUS "SQLite3 not found via find_package, using amalgamation")
+    set(SQLITE3_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/sqlite3")
+    set(SQLITE3_LIBRARY "sqlite3")
+    set(USE_SQLITE3_AMALGAMATION ON)
+endif()
+
+# GoogleTest Runtime Library (must match project settings)
+if(MSVC)
+    set(gtest_force_shared_crt OFF CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib." FORCE)
+endif()
+
 # Configure tests
 add_compile_definitions(ENABLE_UTILITY_TEST)
 add_compile_definitions(ENABLE_personal_TEST)
@@ -87,13 +101,22 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
 
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   message(STATUS "[${ROOT}] Setting Windows C/C++ Flags")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+  
+  # Global MSVC Runtime Library Policy - Use DLL runtime for compatibility
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 else()
   message(WARNING "[${ROOT}] Not supported with the current compiler.")
 endif()
 
 
+
+# SQLite3 submodule (if using amalgamation)
+if(USE_SQLITE3_AMALGAMATION)
+	add_subdirectory(${ROOT}/sqlite3)
+endif()
 
 # Utility submodule
 if(ENABLE_UTILITY)

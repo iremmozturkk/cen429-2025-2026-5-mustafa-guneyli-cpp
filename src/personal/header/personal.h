@@ -8,6 +8,36 @@
 namespace Coruh {
     namespace personal {
 
+        // Forward declaration
+        class DatabaseManager;
+
+        // --- Kullanıcı Kimlik Doğrulama ---
+        struct User {
+            int id{ 0 };
+            std::string username;
+            std::string passwordHash;
+            std::string email;
+        };
+
+        class UserAuth {
+        public:
+            // Kullanıcı kayıt ve giriş
+            bool registerUser(DatabaseManager& db, const std::string& username, 
+                            const std::string& password, const std::string& email);
+            int loginUser(DatabaseManager& db, const std::string& username, 
+                         const std::string& password);
+            
+            // Kullanıcı bilgilerini getir
+            bool getUserById(DatabaseManager& db, int userId, User& user);
+            bool getUserByUsername(DatabaseManager& db, const std::string& username, User& user);
+            
+            // Şifre hash fonksiyonu (basit - production için bcrypt kullanılmalı)
+            static std::string hashPassword(const std::string& password);
+            
+        private:
+            static bool verifyPassword(const std::string& password, const std::string& hash);
+        };
+
         // --- Basit yardımcı matematik sınıfı (testlerde kullanılıyor)
         class FinanceMath {
         public:
@@ -38,6 +68,10 @@ namespace Coruh {
             std::string getCategoryAlert(const std::string& categoryName) const;
             std::map<std::string, BudgetCategory> getCategories() const;
 
+            // Veritabanı işlemleri
+            bool saveToDatabase(DatabaseManager& db, int userId) const;
+            bool loadFromDatabase(DatabaseManager& db, int userId);
+
         private:
             double totalIncome{ 0.0 };
             std::map<std::string, BudgetCategory> nameToCategory;
@@ -60,6 +94,10 @@ namespace Coruh {
             double getTotalUnrealizedPnL() const;
             std::string getBasicSuggestion() const;
 
+            // Veritabanı işlemleri
+            bool saveToDatabase(DatabaseManager& db, int userId) const;
+            bool loadFromDatabase(DatabaseManager& db, int userId);
+
         private:
             std::vector<Investment> investments;
         };
@@ -77,6 +115,10 @@ namespace Coruh {
             void contribute(const std::string& name, double amount);
             std::vector<Goal> getGoals() const;
             double getProgressPercent(const std::string& name) const; // [0,100]
+
+            // Veritabanı işlemleri
+            bool saveToDatabase(DatabaseManager& db, int userId) const;
+            bool loadFromDatabase(DatabaseManager& db, int userId);
 
         private:
             std::map<std::string, Goal> nameToGoal;
@@ -98,6 +140,10 @@ namespace Coruh {
             double getTotalPrincipal() const;
             double getEstimatedMonthlyInterest() const; // kaba: principal * (rate/12)
             std::string getBasicPaydownSuggestion() const;
+
+            // Veritabanı işlemleri
+            bool saveToDatabase(DatabaseManager& db, int userId) const;
+            bool loadFromDatabase(DatabaseManager& db, int userId);
 
         private:
             std::vector<Debt> debts;

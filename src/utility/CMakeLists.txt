@@ -20,9 +20,15 @@ source_group("src" FILES ${LIB_SOURCES})
 # Set Properties->General->Configuration Type to Dynamic Library (.dll/.so/.dylib)
 add_library(${LIBNAME} STATIC ${LIB_HEADERS} ${LIB_SOURCES}) # for dynamic library use SHARED
 
-
 target_include_directories(${LIBNAME} PUBLIC
 						   ${CMAKE_CURRENT_SOURCE_DIR}/header)
+
+# Windows MSVC runtime library settings
+if(MSVC)
+    set_target_properties(${LIBNAME} PROPERTIES
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    )
+endif()
 
 # creates preprocessor definition used for library exports
 add_compile_definitions("LOCK6G_UTILIY_LIB_EXPORTS")

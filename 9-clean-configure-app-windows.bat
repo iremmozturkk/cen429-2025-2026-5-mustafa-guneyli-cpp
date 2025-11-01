@@ -2,6 +2,9 @@
 @setlocal enableextensions
 @cd /d "%~dp0"
 
+rem Add CMake to PATH
+set PATH=%PATH%;C:\Program Files\CMake\bin
+
 echo clean project
 call 9-clean-project.bat
 

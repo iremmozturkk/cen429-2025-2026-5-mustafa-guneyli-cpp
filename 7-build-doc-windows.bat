@@ -2,6 +2,9 @@
 @setlocal enableextensions
 @cd /d "%~dp0"
 
+rem Add CMake to PATH
+set PATH=%PATH%;C:\Program Files\CMake\bin
+
 rem Get the current directory path
 for %%A in ("%~dp0.") do (
     set "currentDir=%%~fA"

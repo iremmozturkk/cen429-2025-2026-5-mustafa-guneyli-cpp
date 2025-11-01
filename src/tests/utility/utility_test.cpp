@@ -14,7 +14,7 @@
 #endif
 
 
-using namespace Coruh::Utility;
+using namespace Kerem::Utility;
 
 class MathUtilityTest : public ::testing::Test {
  public:

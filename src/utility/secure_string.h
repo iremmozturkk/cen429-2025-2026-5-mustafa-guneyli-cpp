@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-namespace Coruh {
+namespace Kerem {
     namespace security {
 
         // 🛡️ VERİ GÜVENLİĞİ: RAM'de hassas verileri güvenli tutan sınıf
@@ -107,7 +107,7 @@ namespace Coruh {
         }
 
     } // namespace security
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // SECURE_STRING_H
 

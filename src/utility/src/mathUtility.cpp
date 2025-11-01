@@ -8,7 +8,7 @@
 
 #include "../header/mathUtility.h"
 
-using namespace Coruh::Utility;
+using namespace Kerem::Utility;
 
 
 double MathUtility::calculateMean(const double data[], int datalen) {

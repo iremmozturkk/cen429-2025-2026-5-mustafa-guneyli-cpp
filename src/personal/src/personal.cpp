@@ -9,13 +9,13 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace Coruh::personal;
+using namespace Kerem::personal;
 
 // ---- UserAuth ----
 // 🛡️ VERİ GÜVENLİĞİ: data_security modülünü kullan
 std::string UserAuth::hashPassword(const std::string& password) {
     // DataSecurity modülündeki PBKDF2 benzeri hash fonksiyonunu kullan
-    return Coruh::DataSecurity::hashPassword(password, 10000);
+    return Kerem::DataSecurity::hashPassword(password, 10000);
 }
 
 bool UserAuth::verifyPassword(const std::string& password, const std::string& hash) {
@@ -28,10 +28,10 @@ bool UserAuth::registerUser(DatabaseManager& db, const std::string& username,
     if (!db.isOpen()) return false;
     
     // 🛡️ VERİ GÜVENLİĞİ: Input validation (data_security modülü)
-    if (!Coruh::DataSecurity::validateInput(username, Coruh::DataSecurity::InputType::USERNAME)) {
+    if (!Kerem::DataSecurity::validateInput(username, Kerem::DataSecurity::InputType::USERNAME)) {
         return false;
     }
-    if (!email.empty() && !Coruh::DataSecurity::validateInput(email, Coruh::DataSecurity::InputType::EMAIL)) {
+    if (!email.empty() && !Kerem::DataSecurity::validateInput(email, Kerem::DataSecurity::InputType::EMAIL)) {
         return false;
     }
     
@@ -42,17 +42,17 @@ bool UserAuth::registerUser(DatabaseManager& db, const std::string& username,
     }
     
     // 🛡️ VERİ GÜVENLİĞİ: SecureString ile şifreyi güvenli yönet
-    Coruh::DataSecurity::SecureString securePassword(password);
+    Kerem::DataSecurity::SecureString securePassword(password);
     std::string passHash = hashPassword(securePassword.get());
     
     // 🛡️ VERİ GÜVENLİĞİ: Güvenli anahtar yönetimi (sabit string yerine)
     // Anahtar environment variable'dan veya kullanıcı bazlı türetilir
-    std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(username, passHash);
-    Coruh::DataSecurity::SecureString secureKey(encryptionKey);
+    std::string encryptionKey = Kerem::DataSecurity::getEncryptionKey(username, passHash);
+    Kerem::DataSecurity::SecureString secureKey(encryptionKey);
     
     // 🛡️ VERİ GÜVENLİĞİ: Email'i şifrele (güvenli anahtar ile)
     std::string encryptedEmail = email.empty() ? "" : 
-        Coruh::DataSecurity::encryptData(email, secureKey.get());
+        Kerem::DataSecurity::encryptData(email, secureKey.get());
     
     // Yeni kullanıcı ekle
     sqlite3_stmt* stmt = nullptr;
@@ -80,7 +80,7 @@ int UserAuth::loginUser(DatabaseManager& db, const std::string& username,
     if (!db.isOpen()) return -1;
     
     // 🛡️ VERİ GÜVENLİĞİ: SecureString ile password yönetimi
-    Coruh::DataSecurity::SecureString securePassword(password);
+    Kerem::DataSecurity::SecureString securePassword(password);
     
     User user;
     bool userFound = getUserByUsername(db, username, user);
@@ -133,9 +133,9 @@ bool UserAuth::getUserById(DatabaseManager& db, int userId, User& user) {
         if (emailText) {
             std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
             // Anahtarı kullanıcı bilgilerinden türet
-            std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
-            Coruh::DataSecurity::SecureString secureKey(encryptionKey);
-            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, secureKey.get());
+            std::string encryptionKey = Kerem::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
+            Kerem::DataSecurity::SecureString secureKey(encryptionKey);
+            user.email = Kerem::DataSecurity::decryptData(encryptedEmail, secureKey.get());
         } else {
             user.email = "";
         }
@@ -176,9 +176,9 @@ bool UserAuth::getUserByUsername(DatabaseManager& db, const std::string& usernam
         if (emailText) {
             std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
             // Anahtarı kullanıcı bilgilerinden türet
-            std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
-            Coruh::DataSecurity::SecureString secureKey(encryptionKey);
-            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, secureKey.get());
+            std::string encryptionKey = Kerem::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
+            Kerem::DataSecurity::SecureString secureKey(encryptionKey);
+            user.email = Kerem::DataSecurity::decryptData(encryptedEmail, secureKey.get());
         } else {
             user.email = "";
         }

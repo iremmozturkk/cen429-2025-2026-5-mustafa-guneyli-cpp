@@ -17,7 +17,7 @@
 ✅ **`src/personal/header/data_security.hpp`** (114 satır)
 - Tüm güvenlik fonksiyon deklarasyonları
 - Comprehensive API documentation
-- Namespace: `Coruh::DataSecurity`
+- Namespace: `Kerem::DataSecurity`
 
 ✅ **`src/personal/src/data_security.cpp`** (850+ satır)
 - Tüm güvenlik fonksiyon implementasyonları
@@ -196,7 +196,7 @@ TOPLAM:               ~120 satır
 
 ### Kod Organizasyonu
 ```
-Namespace:            Coruh::DataSecurity
+Namespace:            Kerem::DataSecurity
 Public Functions:     25+
 Internal Functions:   5 (Internal namespace)
 Classes:              3 (SecureString, DataPacket, TLSContext)
@@ -208,7 +208,7 @@ Structs:              1 (SignedLogEntry)
 ## 🔧 MODÜL YAPISI
 
 ```
-Coruh::DataSecurity/
+Kerem::DataSecurity/
 ├── 🔐 DEPOLAMADA GÜVENLİK
 │   ├─ encryptData()
 │   ├─ decryptData()
@@ -347,7 +347,7 @@ Coruh::DataSecurity/
 - Code duplication yok
 
 ### ✅ Modüler Tasarım
-- Bağımsız namespace (`Coruh::DataSecurity`)
+- Bağımsız namespace (`Kerem::DataSecurity`)
 - Ana koddan ayrı (separation of concerns)
 - Yeniden kullanılabilir
 

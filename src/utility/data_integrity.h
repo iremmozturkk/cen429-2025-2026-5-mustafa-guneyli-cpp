@@ -9,7 +9,7 @@
 #include <cctype>
 #include "encryption.h"
 
-namespace Coruh {
+namespace Kerem {
     namespace security {
 
         // 🛡️ VERİ GÜVENLİĞİ: Veri bütünlüğü doğrulama sistemi
@@ -219,7 +219,7 @@ namespace Coruh {
         };
 
     } // namespace security
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // DATA_INTEGRITY_H
 

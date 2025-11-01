@@ -23,7 +23,7 @@ Bellekte hassas verileri güvenli şekilde yönetir.
 ```cpp
 #include "../../utility/secure_string.h"
 
-Coruh::security::SecureString password("mypassword");
+Kerem::security::SecureString password("mypassword");
 // ... kullan ...
 // Destructor otomatik temizler
 ```
@@ -35,8 +35,8 @@ Veritabanında veri şifreleme sağlar.
 ```cpp
 #include "../../utility/encryption.h"
 
-std::string encrypted = Coruh::security::EncryptionHelper::encrypt(data, key);
-std::string decrypted = Coruh::security::EncryptionHelper::decrypt(encrypted, key);
+std::string encrypted = Kerem::security::EncryptionHelper::encrypt(data, key);
+std::string decrypted = Kerem::security::EncryptionHelper::decrypt(encrypted, key);
 ```
 
 ### 3. `src/utility/data_integrity.h`
@@ -46,7 +46,7 @@ Veri bütünlüğü ve input validation.
 ```cpp
 #include "../../utility/data_integrity.h"
 
-using Coruh::security::DataIntegrityValidator;
+using Kerem::security::DataIntegrityValidator;
 if (DataIntegrityValidator::validateInput(username, InputType::USERNAME)) {
     // Geçerli input
 }
@@ -94,7 +94,7 @@ target_include_directories(personal PUBLIC
 #include "../../utility/secure_string.h"
 
 std::string password = getPasswordMasked();
-Coruh::security::SecureString securePassword(password);
+Kerem::security::SecureString securePassword(password);
 
 int userId = auth.loginUser(db, username, securePassword.get());
 

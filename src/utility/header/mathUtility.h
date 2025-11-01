@@ -9,7 +9,7 @@
 
 #include "commonTypes.h"
 
-namespace Coruh
+namespace Kerem
 {
     namespace Utility
     {

@@ -7,7 +7,7 @@
 // Forward declaration
 struct sqlite3;
 
-namespace Coruh {
+namespace Kerem {
     namespace personal {
 
         /**
@@ -51,7 +51,7 @@ namespace Coruh {
         };
 
     } // namespace personal
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // DATABASE_H
 

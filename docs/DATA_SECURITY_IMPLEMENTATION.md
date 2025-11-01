@@ -34,7 +34,7 @@ Bu dokümanda, projenin veri güvenliği implementasyonu detaylı olarak açıkl
 
 **Kullanım Örneği:**
 ```cpp
-Coruh::security::SecureString securePassword(password);
+Kerem::security::SecureString securePassword(password);
 auth.loginUser(db, username, securePassword.get());
 // Destructor otomatik olarak belleği temizleyecek
 ```
@@ -219,12 +219,12 @@ if (password.length() >= MAX_PASSWORD_LENGTH) {
 #### b) SecureString Kullanımı
 ```cpp
 // Kayıt
-Coruh::security::SecureString securePassword(password);
+Kerem::security::SecureString securePassword(password);
 auth.registerUser(db, username, securePassword.get(), email);
 // Otomatik bellek temizleme
 
 // Login
-Coruh::security::SecureString securePassword(password);
+Kerem::security::SecureString securePassword(password);
 int userId = auth.loginUser(db, username, securePassword.get());
 ```
 

@@ -5,7 +5,7 @@
 #include "../../sqlite3/sqlite3.h"
 #include <iostream>
 
-using namespace Coruh::personal;
+using namespace Kerem::personal;
 
 DatabaseManager::DatabaseManager() : db(nullptr) {}
 
@@ -16,7 +16,7 @@ DatabaseManager::~DatabaseManager() {
 // 🛡️ VERİ GÜVENLİĞİ: Dosya izinlerini sıkılaştır (data_security modülü)
 bool DatabaseManager::setSecureFilePermissions(const std::string& dbPath) {
     // DataSecurity modülündeki fonksiyonu kullan
-    return Coruh::DataSecurity::setSecureFilePermissions(dbPath);
+    return Kerem::DataSecurity::setSecureFilePermissions(dbPath);
 }
 
 bool DatabaseManager::open(const std::string& dbPath) {

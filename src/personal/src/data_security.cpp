@@ -36,7 +36,7 @@
     #include <unistd.h>
 #endif
 
-namespace Coruh {
+namespace Kerem {
     namespace DataSecurity {
 
         // ═══════════════════════════════════════════════════════════
@@ -791,7 +791,7 @@ namespace Coruh {
         } // namespace Internal
 
     } // namespace DataSecurity
-} // namespace Coruh
+} // namespace Kerem
 
 /*
  * ═══════════════════════════════════════════════════════════════════

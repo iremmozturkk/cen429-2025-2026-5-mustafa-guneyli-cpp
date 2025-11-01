@@ -4,21 +4,21 @@
  */
 
 /**
- * @namespace Coruh
- * @brief Root namespace for all Coruh-related code.
+ * @namespace Kerem
+ * @brief Root namespace for all Kerem-related code.
  *
- * This is the top-level namespace for all components, classes, and functions related to the Coruh library.
+ * This is the top-level namespace for all components, classes, and functions related to the Kerem library.
  */
  
  /**
- * @namespace Coruh::Utility
+ * @namespace Kerem::Utility
  * @brief Namespace for general utility functions and classes.
  *
  * This namespace contains a collection of utility functions and classes that provide commonly-used functionality.
  */
 
  /**
- * @namespace Coruh::personal
+ * @namespace Kerem::personal
  * @brief Namespace for personal functions and classes.
  *
  * This namespace contains a collection of personal functions and classes that provide commonly-used functionality.

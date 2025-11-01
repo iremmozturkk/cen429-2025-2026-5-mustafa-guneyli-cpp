@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "../../personal/header/personal.h"  // Adjust this include path based on your project structure
 
-using namespace Coruh::personal;
+using namespace Kerem::personal;
 
 class personalTest : public ::testing::Test {
 protected:

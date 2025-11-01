@@ -17,7 +17,7 @@
  * - Dosya güvenliği (permissions, secure delete)
  */
 
-namespace Coruh {
+namespace Kerem {
     namespace DataSecurity {
 
         // ═══════════════════════════════════════════════════════════
@@ -322,7 +322,7 @@ namespace Coruh {
         }
 
     } // namespace DataSecurity
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // DATA_SECURITY_HPP
 

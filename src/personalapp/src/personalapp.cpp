@@ -20,7 +20,7 @@
 
 #pragma execution_character_set("utf-8")   // <--- Türkçe karakterler için eklendi.
 
-using namespace Coruh::personal;
+using namespace Kerem::personal;
 
 namespace {
     // 🛡️ VERİ GÜVENLİĞİ: Şifre girişi için güvenli maskeleme (buffer limit)
@@ -175,7 +175,7 @@ namespace {
                 std::getline(std::cin, username);
                 
                 // 🛡️ VERİ GÜVENLİĞİ: Username validation (data_security modülü)
-                if (!Coruh::DataSecurity::validateInput(username, Coruh::DataSecurity::InputType::USERNAME)) {
+                if (!Kerem::DataSecurity::validateInput(username, Kerem::DataSecurity::InputType::USERNAME)) {
                     std::cout << u8"\n⚠ Geçersiz kullanıcı adı! 3-32 karakter, alfanumerik olmalı.\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
@@ -197,7 +197,7 @@ namespace {
                 std::getline(std::cin, email);
                 
                 // 🛡️ VERİ GÜVENLİĞİ: Email validation (data_security modülü)
-                if (!email.empty() && !Coruh::DataSecurity::validateInput(email, Coruh::DataSecurity::InputType::EMAIL)) {
+                if (!email.empty() && !Kerem::DataSecurity::validateInput(email, Kerem::DataSecurity::InputType::EMAIL)) {
                     std::cout << u8"\n⚠ Geçersiz e-posta formatı!\n";
                     std::cout << u8"Devam etmek için Enter tuşuna basın...";
                     std::cin.get();
@@ -205,7 +205,7 @@ namespace {
                 }
 
                 // 🛡️ VERİ GÜVENLİĞİ: SecureString ile hassas veri yönetimi (data_security modülü)
-                Coruh::DataSecurity::SecureString securePassword(password);
+                Kerem::DataSecurity::SecureString securePassword(password);
                 
                 if (auth.registerUser(db, username, securePassword.get(), email)) {
                     std::cout << u8"\n✓ Kayıt başarılı! Şimdi giriş yapabilirsiniz.\n";
@@ -234,7 +234,7 @@ namespace {
                 std::string password = getPasswordMasked();
 
                 // 🛡️ VERİ GÜVENLİĞİ: SecureString ile password yönetimi (data_security modülü)
-                Coruh::DataSecurity::SecureString securePassword(password);
+                Kerem::DataSecurity::SecureString securePassword(password);
                 
                 int userId = auth.loginUser(db, username, securePassword.get());
                 if (userId > 0) {

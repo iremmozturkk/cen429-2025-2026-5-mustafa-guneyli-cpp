@@ -25,13 +25,13 @@ src/personal/
 // Şifreleme
 std::string plaintext = "Hassas Bilgi";
 std::string key = "SECRET_KEY_2025";
-std::string encrypted = Coruh::DataSecurity::encryptData(plaintext, key);
+std::string encrypted = Kerem::DataSecurity::encryptData(plaintext, key);
 
 // Veritabanına encrypted değeri kaydet
 // ...
 
 // Şifre Çözme
-std::string decrypted = Coruh::DataSecurity::decryptData(encrypted, key);
+std::string decrypted = Kerem::DataSecurity::decryptData(encrypted, key);
 ```
 
 **Kullanıldığı Yerler:**
@@ -42,7 +42,7 @@ std::string decrypted = Coruh::DataSecurity::decryptData(encrypted, key);
 ```cpp
 // Güçlü password hash (10,000 iterasyon PBKDF2 benzeri)
 std::string password = "user_password123";
-std::string hash = Coruh::DataSecurity::hashPassword(password, 10000);
+std::string hash = Kerem::DataSecurity::hashPassword(password, 10000);
 
 // Veritabanına hash değeri kaydet
 ```
@@ -54,7 +54,7 @@ std::string hash = Coruh::DataSecurity::hashPassword(password, 10000);
 ```cpp
 // SHA-256 benzeri hash (veri bütünlüğü için)
 std::string data = "Important Data";
-std::string hash = Coruh::DataSecurity::hashData(data);
+std::string hash = Kerem::DataSecurity::hashData(data);
 ```
 
 #### HMAC İmzalama
@@ -62,7 +62,7 @@ std::string hash = Coruh::DataSecurity::hashData(data);
 // Message authentication
 std::string message = "Transaction: 1000 TL";
 std::string key = "SIGNING_KEY";
-std::string signature = Coruh::DataSecurity::hmacSign(message, key);
+std::string signature = Kerem::DataSecurity::hmacSign(message, key);
 
 // Doğrulama
 std::string receivedSignature = "...";
@@ -76,7 +76,7 @@ bool valid = (signature == receivedSignature);
 #### SecureString Sınıfı
 ```cpp
 // Şifreleri RAM'de güvenli tutma
-Coruh::DataSecurity::SecureString securePassword("user_password");
+Kerem::DataSecurity::SecureString securePassword("user_password");
 
 // Kullan
 auth.loginUser(db, username, securePassword.get());
@@ -103,7 +103,7 @@ auth.loginUser(db, username, securePassword.get());
 // Herhangi bir bellek bölgesini güvenli temizle
 char buffer[256];
 // ... buffer kullan ...
-Coruh::DataSecurity::secureZeroMemory(buffer, sizeof(buffer));
+Kerem::DataSecurity::secureZeroMemory(buffer, sizeof(buffer));
 ```
 
 ---
@@ -115,8 +115,8 @@ Coruh::DataSecurity::secureZeroMemory(buffer, sizeof(buffer));
 // SQL injection ve XSS önleme
 std::string username = user_input;
 
-if (!Coruh::DataSecurity::validateInput(username, 
-    Coruh::DataSecurity::InputType::USERNAME)) {
+if (!Kerem::DataSecurity::validateInput(username, 
+    Kerem::DataSecurity::InputType::USERNAME)) {
     std::cout << "Geçersiz kullanıcı adı!\n";
     return false;
 }
@@ -137,7 +137,7 @@ if (!Coruh::DataSecurity::validateInput(username,
 ```cpp
 // Tehlikeli karakterleri temizle
 std::string dangerous_input = "admin'; DROP TABLE users; --";
-std::string safe = Coruh::DataSecurity::sanitizeInput(dangerous_input);
+std::string safe = Kerem::DataSecurity::sanitizeInput(dangerous_input);
 // Sonuç: "admin DROP TABLE users "
 ```
 
@@ -147,7 +147,7 @@ std::string safe = Coruh::DataSecurity::sanitizeInput(dangerous_input);
 std::string data = "Transaction Data";
 std::string key = "INTEGRITY_KEY";
 
-Coruh::DataSecurity::DataPacket packet(data, key);
+Kerem::DataSecurity::DataPacket packet(data, key);
 
 // İlet...
 
@@ -167,7 +167,7 @@ if (packet.verify(key, 300)) { // 5 dakika timeout
 #### TLS Context (Network Hazırlık)
 ```cpp
 // Gelecekte HTTPS/TLS desteği için placeholder
-Coruh::DataSecurity::TLSContext tls;
+Kerem::DataSecurity::TLSContext tls;
 tls.setCertificate("/path/to/cert.pem");
 tls.setPrivateKey("/path/to/key.pem");
 tls.setVerifyPeer(true);
@@ -185,7 +185,7 @@ tls.initialize();
 // chmod 600 (Linux) veya ACL (Windows)
 std::string dbPath = "personal_finance.db";
 
-if (Coruh::DataSecurity::setSecureFilePermissions(dbPath)) {
+if (Kerem::DataSecurity::setSecureFilePermissions(dbPath)) {
     std::cout << "Dosya güvenli!\n";
 }
 ```
@@ -197,7 +197,7 @@ if (Coruh::DataSecurity::setSecureFilePermissions(dbPath)) {
 #### Güvenli Dosya Silme
 ```cpp
 // 3-pass overwrite + delete (anti-forensics)
-if (Coruh::DataSecurity::secureDeleteFile("sensitive.dat")) {
+if (Kerem::DataSecurity::secureDeleteFile("sensitive.dat")) {
     std::cout << "Dosya güvenli şekilde silindi!\n";
 }
 ```
@@ -209,12 +209,12 @@ std::string dbPath = "personal_finance.db";
 std::string backupPath = "backup_encrypted.db";
 std::string key = "BACKUP_KEY_2025";
 
-if (Coruh::DataSecurity::createEncryptedBackup(dbPath, backupPath, key)) {
+if (Kerem::DataSecurity::createEncryptedBackup(dbPath, backupPath, key)) {
     std::cout << "Şifreli yedek oluşturuldu!\n";
 }
 
 // Geri yükle
-if (Coruh::DataSecurity::restoreEncryptedBackup(backupPath, dbPath, key)) {
+if (Kerem::DataSecurity::restoreEncryptedBackup(backupPath, dbPath, key)) {
     std::cout << "Yedek geri yüklendi!\n";
 }
 ```
@@ -229,7 +229,7 @@ if (Coruh::DataSecurity::restoreEncryptedBackup(backupPath, dbPath, key)) {
 std::string logFile = "app.log";
 std::string signingKey = "LOG_SIGNING_KEY";
 
-Coruh::DataSecurity::writeSignedLog(
+Kerem::DataSecurity::writeSignedLog(
     "User login: admin",
     logFile,
     signingKey
@@ -239,7 +239,7 @@ Coruh::DataSecurity::writeSignedLog(
 #### Log Doğrulama
 ```cpp
 // Tüm log dosyasını doğrula
-if (Coruh::DataSecurity::verifyLogFile(logFile, signingKey)) {
+if (Kerem::DataSecurity::verifyLogFile(logFile, signingKey)) {
     std::cout << "Log dosyası bütünlüğü sağlam!\n";
 } else {
     std::cout << "⚠️ Log dosyası değiştirilmiş!\n";
@@ -249,7 +249,7 @@ if (Coruh::DataSecurity::verifyLogFile(logFile, signingKey)) {
 #### Signed Log Entry
 ```cpp
 // Manuel log entry oluştur
-Coruh::DataSecurity::SignedLogEntry entry(
+Kerem::DataSecurity::SignedLogEntry entry(
     "Critical operation performed",
     signingKey
 );
@@ -273,26 +273,26 @@ bool registerUserSecure(const std::string& username,
                        const std::string& email) {
     
     // 1. Input validation
-    if (!Coruh::DataSecurity::validateInput(username, 
-        Coruh::DataSecurity::InputType::USERNAME)) {
+    if (!Kerem::DataSecurity::validateInput(username, 
+        Kerem::DataSecurity::InputType::USERNAME)) {
         return false;
     }
     
-    if (!email.empty() && !Coruh::DataSecurity::validateInput(email,
-        Coruh::DataSecurity::InputType::EMAIL)) {
+    if (!email.empty() && !Kerem::DataSecurity::validateInput(email,
+        Kerem::DataSecurity::InputType::EMAIL)) {
         return false;
     }
     
     // 2. SecureString ile password yönetimi
-    Coruh::DataSecurity::SecureString securePass(password);
+    Kerem::DataSecurity::SecureString securePass(password);
     
     // 3. Password hash
-    std::string passHash = Coruh::DataSecurity::hashPassword(
+    std::string passHash = Kerem::DataSecurity::hashPassword(
         securePass.get(), 10000);
     
     // 4. Email şifreleme
     const std::string EMAIL_KEY = "EMAIL_KEY_2025";
-    std::string encryptedEmail = Coruh::DataSecurity::encryptData(
+    std::string encryptedEmail = Kerem::DataSecurity::encryptData(
         email, EMAIL_KEY);
     
     // 5. Veritabanına kaydet
@@ -310,7 +310,7 @@ void sendSecureData(const std::string& data) {
     const std::string INTEGRITY_KEY = "DATA_KEY_2025";
     
     // Veri paketi oluştur
-    Coruh::DataSecurity::DataPacket packet(data, INTEGRITY_KEY);
+    Kerem::DataSecurity::DataPacket packet(data, INTEGRITY_KEY);
     
     // Network'e gönder (simülasyon)
     // sendOverNetwork(packet.data, packet.checksum, 
@@ -322,7 +322,7 @@ void sendSecureData(const std::string& data) {
     std::cout << "Timestamp: " << packet.timestamp << "\n";
 }
 
-void receiveSecureData(const Coruh::DataSecurity::DataPacket& packet) {
+void receiveSecureData(const Kerem::DataSecurity::DataPacket& packet) {
     const std::string INTEGRITY_KEY = "DATA_KEY_2025";
     
     // Doğrula
@@ -340,18 +340,18 @@ void receiveSecureData(const Coruh::DataSecurity::DataPacket& packet) {
 void secureDatabaseOperation() {
     // 1. Dosya izinlerini sıkılaştır
     std::string dbPath = "personal_finance.db";
-    Coruh::DataSecurity::setSecureFilePermissions(dbPath);
+    Kerem::DataSecurity::setSecureFilePermissions(dbPath);
     
     // 2. Şifreli yedek al
     std::string backupPath = "backup_" + getCurrentDate() + ".db";
-    Coruh::DataSecurity::createEncryptedBackup(
+    Kerem::DataSecurity::createEncryptedBackup(
         dbPath, backupPath, "BACKUP_KEY_2025");
     
     // 3. Veritabanı işlemlerini yap
     // ... SQL operations ...
     
     // 4. İmzalı log kaydet
-    Coruh::DataSecurity::writeSignedLog(
+    Kerem::DataSecurity::writeSignedLog(
         "Database operation completed",
         "app.log",
         "LOG_KEY_2025"

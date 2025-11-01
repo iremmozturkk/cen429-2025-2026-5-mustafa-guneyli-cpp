@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-namespace Coruh {
+namespace Kerem {
     namespace personal {
 
         // Forward declaration
@@ -150,6 +150,6 @@ namespace Coruh {
         };
 
     } // namespace personal
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // PERSONAL_H

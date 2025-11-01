@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <chrono>
 
-namespace Coruh {
+namespace Kerem {
     namespace security {
 
         // 🛡️ VERİ GÜVENLİĞİ: AES-256 benzeri basit XOR şifreleme
@@ -221,7 +221,7 @@ namespace Coruh {
         };
 
     } // namespace security
-} // namespace Coruh
+} // namespace Kerem
 
 #endif // ENCRYPTION_H
 

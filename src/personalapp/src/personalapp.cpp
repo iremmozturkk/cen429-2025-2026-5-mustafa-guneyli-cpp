@@ -16,6 +16,8 @@
 #include <windows.h>
 #include <vector>
 #include <conio.h> // _getch() için
+#else
+#include <unistd.h> // readlink için
 #endif
 
 #pragma execution_character_set("utf-8")   // <--- Türkçe karakterler için eklendi.
@@ -278,22 +280,50 @@ void runApplication() {
     DatabaseManager db;
     bool dbOpened = false;
     
-    // 📂 Veritabanı dosyası - çalışma dizininde (build klasöründe)
-    const std::string dbFileName = "personal_finance.db";
+    // 📂 Veritabanı dosyası - executable'ın bulunduğu dizinde oluştur
+    std::string dbFilePath;
+#ifdef _WIN32
+    // Windows: Executable'ın bulunduğu dizini al
+    char exePath[MAX_PATH];
+    if (GetModuleFileNameA(NULL, exePath, MAX_PATH)) {
+        std::string exePathStr(exePath);
+        size_t lastSlash = exePathStr.find_last_of("\\/");
+        if (lastSlash != std::string::npos) {
+            std::string exeDir = exePathStr.substr(0, lastSlash + 1);
+            dbFilePath = exeDir + "personal_finance.db";
+        } else {
+            // Fallback: çalışma dizini
+            dbFilePath = "personal_finance.db";
+        }
+    } else {
+        // Fallback: çalışma dizini
+        dbFilePath = "personal_finance.db";
+    }
+#else
+    // Linux/Mac: Executable'ın bulunduğu dizini al
+    char exePath[1024];
+    ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+    if (count != -1) {
+        exePath[count] = '\0';
+        std::string exePathStr(exePath);
+        size_t lastSlash = exePathStr.find_last_of("/");
+        if (lastSlash != std::string::npos) {
+            std::string exeDir = exePathStr.substr(0, lastSlash + 1);
+            dbFilePath = exeDir + "personal_finance.db";
+        } else {
+            dbFilePath = "personal_finance.db";
+        }
+    } else {
+        dbFilePath = "personal_finance.db";
+    }
+#endif
     
     // Veritabanını aç ve tabloları oluştur
-    if (db.open(dbFileName)) {
+    if (db.open(dbFilePath)) {
         if (db.createTables()) {
             dbOpened = true;
             std::cout << u8"✓ Veritabanı başarıyla açıldı ve hazır.\n";
-            std::cout << u8"📂 Veritabanı dosyası: " << dbFileName << "\n";
-#ifdef _WIN32
-            // Windows'ta tam yolu göster
-            char fullPath[MAX_PATH];
-            if (GetCurrentDirectoryA(MAX_PATH, fullPath)) {
-                std::cout << u8"📍 Konum: " << fullPath << "\\" << dbFileName << "\n";
-            }
-#endif
+            std::cout << u8"📂 Veritabanı dosyası: " << dbFilePath << "\n";
         } else {
             std::cout << u8"⚠ Veritabanı tabloları oluşturulamadı: " << db.getLastError() << "\n";
         }

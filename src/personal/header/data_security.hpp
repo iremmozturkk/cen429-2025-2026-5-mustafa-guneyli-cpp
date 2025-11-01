@@ -63,6 +63,30 @@ namespace Coruh {
          */
         std::string hmacSign(const std::string& message, const std::string& key);
 
+        /**
+         * @brief 🛡️ Veri Güvenliği: Güvenli anahtar türetme (kullanıcı bazlı)
+         * 
+         * Kullanıcı bazlı şifreleme anahtarı türetir. Her kullanıcı için farklı anahtar üretir.
+         * Anahtar, username ve password hash'inden türetilir.
+         * 
+         * @param username Kullanıcı adı
+         * @param passwordHash Şifre hash'i (veritabanındaki hash)
+         * @return Güvenli şifreleme anahtarı (SecureString olarak saklanmalı)
+         */
+        std::string deriveEncryptionKey(const std::string& username, const std::string& passwordHash);
+
+        /**
+         * @brief 🛡️ Veri Güvenliği: Güvenli anahtar alma (environment variable veya türetilmiş)
+         * 
+         * Önce environment variable'dan anahtarı okumaya çalışır (EMAIL_ENCRYPTION_KEY).
+         * Bulunamazsa, kullanıcı bazlı key derivation kullanır.
+         * 
+         * @param username Kullanıcı adı (fallback için gerekli)
+         * @param passwordHash Şifre hash'i (fallback için gerekli)
+         * @return Güvenli şifreleme anahtarı
+         */
+        std::string getEncryptionKey(const std::string& username = "", const std::string& passwordHash = "");
+
         // ═══════════════════════════════════════════════════════════
         // 🧠 KULANIMDA VERİ GÜVENLİĞİ (Secure Memory)
         // ═══════════════════════════════════════════════════════════

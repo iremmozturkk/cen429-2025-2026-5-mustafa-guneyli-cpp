@@ -45,10 +45,14 @@ bool UserAuth::registerUser(DatabaseManager& db, const std::string& username,
     Coruh::DataSecurity::SecureString securePassword(password);
     std::string passHash = hashPassword(securePassword.get());
     
-    // 🛡️ VERİ GÜVENLİĞİ: Email'i şifrele
-    const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
+    // 🛡️ VERİ GÜVENLİĞİ: Güvenli anahtar yönetimi (sabit string yerine)
+    // Anahtar environment variable'dan veya kullanıcı bazlı türetilir
+    std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(username, passHash);
+    Coruh::DataSecurity::SecureString secureKey(encryptionKey);
+    
+    // 🛡️ VERİ GÜVENLİĞİ: Email'i şifrele (güvenli anahtar ile)
     std::string encryptedEmail = email.empty() ? "" : 
-        Coruh::DataSecurity::encryptData(email, EMAIL_KEY);
+        Coruh::DataSecurity::encryptData(email, secureKey.get());
     
     // Yeni kullanıcı ekle
     sqlite3_stmt* stmt = nullptr;
@@ -125,11 +129,13 @@ bool UserAuth::getUserById(DatabaseManager& db, int userId, User& user) {
         user.username = usernameText ? reinterpret_cast<const char*>(usernameText) : "";
         user.passwordHash = passwordText ? reinterpret_cast<const char*>(passwordText) : "";
         
-        // 🛡️ VERİ GÜVENLİĞİ: Email'i şifreli formdan çöz
+        // 🛡️ VERİ GÜVENLİĞİ: Güvenli anahtar yönetimi ile email'i şifre çöz
         if (emailText) {
-            const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
             std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
-            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, EMAIL_KEY);
+            // Anahtarı kullanıcı bilgilerinden türet
+            std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
+            Coruh::DataSecurity::SecureString secureKey(encryptionKey);
+            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, secureKey.get());
         } else {
             user.email = "";
         }
@@ -166,11 +172,13 @@ bool UserAuth::getUserByUsername(DatabaseManager& db, const std::string& usernam
         user.username = usernameText ? reinterpret_cast<const char*>(usernameText) : "";
         user.passwordHash = passwordText ? reinterpret_cast<const char*>(passwordText) : "";
         
-        // 🛡️ VERİ GÜVENLİĞİ: Email'i şifreli formdan çöz
+        // 🛡️ VERİ GÜVENLİĞİ: Güvenli anahtar yönetimi ile email'i şifre çöz
         if (emailText) {
-            const std::string EMAIL_KEY = "EMAIL_ENCRYPTION_KEY_2025";
             std::string encryptedEmail = reinterpret_cast<const char*>(emailText);
-            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, EMAIL_KEY);
+            // Anahtarı kullanıcı bilgilerinden türet
+            std::string encryptionKey = Coruh::DataSecurity::getEncryptionKey(user.username, user.passwordHash);
+            Coruh::DataSecurity::SecureString secureKey(encryptionKey);
+            user.email = Coruh::DataSecurity::decryptData(encryptedEmail, secureKey.get());
         } else {
             user.email = "";
         }

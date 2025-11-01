@@ -18,6 +18,15 @@
 #include <fstream>
 #include <cctype>
 
+// Platform-specific headers for environment variables
+#ifdef _WIN32
+    #include <windows.h>
+    #define getenv_safe(name) (getenv(name) ? std::string(getenv(name)) : std::string())
+#else
+    #include <cstdlib>
+    #define getenv_safe(name) (getenv(name) ? std::string(getenv(name)) : std::string())
+#endif
+
 // Platform-specific headers
 #ifdef _WIN32
     #include <windows.h>
@@ -135,6 +144,50 @@ namespace Coruh {
             // Simplified version: H(key + message + key)
             std::string combined = key + message + key;
             return hashData(combined);
+        }
+
+        // 🛡️ Veri Güvenliği: Güvenli anahtar türetme (kullanıcı bazlı)
+        std::string deriveEncryptionKey(const std::string& username, const std::string& passwordHash) {
+            // Her kullanıcı için benzersiz anahtar türet
+            // Kombinasyon: username + passwordHash + application secret
+            const std::string APPLICATION_SECRET = "PERSONAL_FINANCE_APP_SECRET_2025";
+            
+            // Güçlü key derivation: hash(username + passwordHash + secret)
+            std::string material = username + passwordHash + APPLICATION_SECRET;
+            
+            // 5 iterasyon hash (ekstra güvenlik)
+            std::string derived = material;
+            for (int i = 0; i < 5; ++i) {
+                derived = hashData(derived + std::to_string(i));
+            }
+            
+            // Son hash'i tekrar hash'le (final key)
+            return hashData(derived + "FINAL_KEY");
+        }
+
+        // 🛡️ Veri Güvenliği: Güvenli anahtar alma (environment variable veya türetilmiş)
+        std::string getEncryptionKey(const std::string& username, const std::string& passwordHash) {
+            // Öncelik 1: Environment variable'dan oku
+            std::string envKey = getenv_safe("EMAIL_ENCRYPTION_KEY");
+            if (!envKey.empty() && envKey.length() >= 16) {
+                // Environment variable'dan alınan anahtar yeterince uzunsa kullan
+                return envKey;
+            }
+            
+            // Öncelik 2: Application-wide environment variable
+            envKey = getenv_safe("PERSONAL_FINANCE_ENCRYPTION_KEY");
+            if (!envKey.empty() && envKey.length() >= 16) {
+                return envKey;
+            }
+            
+            // Öncelik 3: Kullanıcı bazlı key derivation (username ve password hash gerekli)
+            if (!username.empty() && !passwordHash.empty()) {
+                return deriveEncryptionKey(username, passwordHash);
+            }
+            
+            // Fallback: Güvenli olmayan ama çalışan default key (sadece test için)
+            // Production'da bu duruma düşülmemeli!
+            return hashData("DEFAULT_FALLBACK_KEY_NOT_SECURE_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
         }
 
         // ═══════════════════════════════════════════════════════════

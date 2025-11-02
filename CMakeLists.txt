@@ -102,6 +102,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   message(STATUS "[${ROOT}] Setting Windows C/C++ Flags")
   
+  # UTF-8 encoding desteği (Türkçe karakterler için)
+  add_compile_options(/utf-8)
+  
   # Global MSVC Runtime Library Policy - Use DLL runtime for compatibility
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
   

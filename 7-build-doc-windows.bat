@@ -2,6 +2,12 @@
 @setlocal enableextensions
 @cd /d "%~dp0"
 
+rem UTF-8 encoding desteği (Türkçe karakterler için)
+chcp 65001 >nul
+
+rem Python UTF-8 encoding desteği
+set PYTHONIOENCODING=utf-8
+
 rem Add CMake to PATH
 set PATH=%PATH%;C:\Program Files\CMake\bin
 

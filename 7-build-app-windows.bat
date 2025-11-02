@@ -2,6 +2,12 @@
 @setlocal enableextensions
 @cd /d "%~dp0"
 
+rem UTF-8 encoding desteği (Türkçe karakterler için)
+chcp 65001 >nul
+
+rem Python UTF-8 encoding desteği
+set PYTHONIOENCODING=utf-8
+
 rem Add CMake to PATH
 set PATH=%PATH%;C:\Program Files\CMake\bin
 
@@ -87,10 +93,10 @@ echo Generate Test Coverage Data for Utility
 call OpenCppCoverage.exe --export_type=binary:utility_tests_unit_win.cov --sources src\utility\src --sources src\utility\header --sources src\tests\utility -- build_win\build\Debug\utility_tests.exe
 
 echo Generate Test Coverage Data for personal
-call OpenCppCoverage.exe --export_type=binary:personal_tests_unit_win.cov --sources src\personal\src --sources src\personal\header --sources src\tests\personal -- build_win\build\Debug\personal_tests.exe
+call OpenCppCoverage.exe --export_type=binary:personal_tests_unit_win.cov --sources src\personal\src --sources src\personal\header --sources src\personalapp\src --sources src\personalapp\header --sources src\tests\personal -- build_win\build\Debug\personal_tests.exe
 
 echo Generate Test Coverage Data for personal App and Combine Results
-call OpenCppCoverage.exe --input_coverage=utility_tests_unit_win.cov --input_coverage=personal_tests_unit_win.cov --export_type=cobertura:personalapp_unit_win_cobertura.xml --sources src\utility\src --sources src\utility\header --sources src\personal\src --sources src\personal\header --sources src\personalapp\src --sources src\personalapp\header --sources src\tests\utility --sources src\tests\personal -- build_win\build\Debug\personalapp.exe
+call OpenCppCoverage.exe --input_coverage=utility_tests_unit_win.cov --input_coverage=personal_tests_unit_win.cov --export_type=cobertura:personalapp_unit_win_cobertura.xml --sources src\utility\src --sources src\utility\header --sources src\personal\src --sources src\personal\header --sources src\personalapp\src --sources src\personalapp\header --sources src\tests\utility --sources src\tests\personal -- build_win\build\Debug\personal_tests.exe
 
 echo Generate Unit Test Coverage Report
 call reportgenerator "-title:personal Library Unit Test Coverage Report (Windows)" "-targetdir:docs/coveragereportlibwin" "-reporttypes:Html" "-reports:**/personalapp_unit_win_cobertura.xml" "-sourcedirs:src/utility/src;src/utility/header;src/personal/src;src/personal/header;src/personalapp/src;src/personalapp/header;src/tests/utility;src/tests/personal" "-filefilters:-*minkernel\*;-*gtest*;-*a\_work\*;-*gtest-*;-*gtest.cc;-*gtest.h;-*build*" "-historydir:report_test_hist_win"

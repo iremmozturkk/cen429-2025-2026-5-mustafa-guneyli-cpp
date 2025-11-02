@@ -84,55 +84,22 @@ namespace {
 #endif
     }
 
-#ifdef _WIN32
-    // --------- Windows renk yardımcıları ----------
-    void setColor(WORD color) {
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-    }
-    void resetColor() { setColor(7); } // Beyaz
-    void drawLine() { std::cout << "==========================================" << '\n'; }
-
-    // Renkli/görsel ana menü
-    void mainMenuVisual(const std::string& username = "") {
-        setColor(11); // Açık mavi
-        drawLine();
-        std::cout << "       \xF0\x9F\x92\xBC KİŞİSEL FİNANS DANIŞMANI\n";
-        if (!username.empty()) {
-            setColor(10);
-            std::cout << "       \xF0\x9F\x91\xA4 Hoş geldiniz, " << username << "!\n";
-            setColor(11);
-        }
-        drawLine();
-        setColor(14); // Sarı
-        std::cout << " 1) \xF0\x9F\x92\xB0 Bütçe planlama ve takip\n";
-        std::cout << " 2) \xF0\x9F\x93\x88 Yatırım portföy yönetimi\n";
-        std::cout << " 3) \xF0\x9F\x8E\xAF Finansal hedefler\n";
-        std::cout << " 4) \xF0\x9F\x93\x89 Borç azaltma stratejileri\n";
-        std::cout << " 0) \xE2\x9D\x8C Çıkış\n";
-        resetColor();
-        drawLine();
-        std::cout << "Seçiminiz: ";
-    }
-#else
-    // Diğer platformlarda sade menü
     void drawLine() { std::cout << "==========================================" << '\n'; }
     void mainMenuVisual(const std::string& username = "") {
         drawLine();
-        std::cout << "       KİŞİSEL FİNANS DANIŞMANI\n";
+        std::cout << "       Kisisel Finans Danismani\n";
         if (!username.empty()) {
-            std::cout << "       Hoş geldiniz, " << username << "!\n";
+            std::cout << "       Hos geldiniz, " << username << "!\n";
         }
         drawLine();
-        std::cout << " 1) Bütçe planlama ve takip\n";
-        std::cout << " 2) Yatırım portföy yönetimi\n";
+        std::cout << " 1) Butce planlama ve takip\n";
+        std::cout << " 2) Yatirim portfoy yonetimi\n";
         std::cout << " 3) Finansal hedefler\n";
-        std::cout << " 4) Borç azaltma stratejileri\n";
-        std::cout << " 0) Çıkış\n";
+        std::cout << " 4) Borc azaltma stratejileri\n";
+        std::cout << " 0) Cikis\n";
         drawLine();
-        std::cout << "Seçiminiz: ";
+        std::cout << "Seciminiz: ";
     }
-    void resetColor() {} // no-op
-#endif
 
     // Güvenli tamsayı okuma
     bool readIntSafe(const char* prompt, int& out) {
@@ -145,65 +112,58 @@ namespace {
     int showAuthMenu(DatabaseManager& db, UserAuth& auth) {
         while (true) {
             clearScreen();
-#ifdef _WIN32
-            setColor(11);
-#endif
             drawLine();
-            std::cout << "       \xF0\x9F\x94\x90 KULLANICI GİRİŞİ\n";
+            std::cout << "       \xF0\x9F\x94\x90 Kullanici Girisi\n";
             drawLine();
-#ifdef _WIN32
-            setColor(14);
-#endif
-            std::cout << " 1) \xF0\x9F\x93\x9D Kayıt Ol (Register)\n";
-            std::cout << " 2) \xF0\x9F\x94\x91 Giriş Yap (Login)\n";
-            std::cout << " 0) \xE2\x9D\x8C Çıkış\n";
-            resetColor();
+            std::cout << " 1) \xF0\x9F\x93\x9D Kayit Ol (Register)\n";
+            std::cout << " 2) \xF0\x9F\x94\x91 Giris Yap (Login)\n";
+            std::cout << " 0) \xE2\x9D\x8C Cikis\n";
             drawLine();
 
             int choice;
-            if (!readIntSafe("Seçiminiz: ", choice)) {
-                std::cout << u8"Geçersiz giriş!\n";
+            if (!readIntSafe("Seciminiz: ", choice)) {
+                std::cout << u8"Gecersiz giris!\n";
                 continue;
             }
 
             if (choice == 0) {
-                return -1; // Çıkış
+                return -1; // Cikis
             }
             else if (choice == 1) {
                 // 🛡️ VERİ GÜVENLİĞİ: Güvenli kayıt (input validation)
                 clearScreen();
-                std::cout << u8"\n=== KAYIT OL ===\n";
+                std::cout << u8"\n=== Kayit Ol ===\n";
                 std::string username, email;
                 
-                std::cout << u8"Kullanıcı adı (3-32 karakter, alfanumerik): ";
+                std::cout << u8"Kullanici adi (3-32 karakter, alfanumerik): ";
                 std::getline(std::cin, username);
                 
                 // 🛡️ VERİ GÜVENLİĞİ: Username validation (data_security modülü)
                 if (!Kerem::DataSecurity::validateInput(username, Kerem::DataSecurity::InputType::USERNAME)) {
-                    std::cout << u8"\n⚠ Geçersiz kullanıcı adı! 3-32 karakter, alfanumerik olmalı.\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n⚠ Gecersiz kullanici adi! 3-32 karakter, alfanumerik olmali.\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                     continue;
                 }
                 
-                std::cout << u8"Şifre (min 8 karakter): ";
+                std::cout << u8"Sifre (min 8 karakter): ";
                 std::string password = getPasswordMasked();
                 
                 // 🛡️ VERİ GÜVENLİĞİ: Password strength check
                 if (password.length() < 8) {
-                    std::cout << u8"\n⚠ Şifre en az 8 karakter olmalıdır!\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n⚠ Sifre en az 8 karakter olmalidir!\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                     continue;
                 }
                 
-                std::cout << u8"E-posta (isteğe bağlı): ";
+                std::cout << u8"E-posta (isteg bagli): ";
                 std::getline(std::cin, email);
                 
                 // 🛡️ VERİ GÜVENLİĞİ: Email validation (data_security modülü)
                 if (!email.empty() && !Kerem::DataSecurity::validateInput(email, Kerem::DataSecurity::InputType::EMAIL)) {
-                    std::cout << u8"\n⚠ Geçersiz e-posta formatı!\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n⚠ Gecersiz e-posta formati!\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                     continue;
                 }
@@ -212,12 +172,12 @@ namespace {
                 Kerem::DataSecurity::SecureString securePassword(password);
                 
                 if (auth.registerUser(db, username, securePassword.get(), email)) {
-                    std::cout << u8"\n✓ Kayıt başarılı! Şimdi giriş yapabilirsiniz.\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n✓ Kayit basarili! Simdi giris yapabilirsiniz.\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                 } else {
-                    std::cout << u8"\n⚠ Kayıt başarısız! Kullanıcı adı zaten kullanımda veya geçersiz veri.\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n⚠ Kayit basarisiz! Kullanici adi zaten kullanimda veya gecersiz veri.\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                 }
                 
@@ -228,13 +188,13 @@ namespace {
             else if (choice == 2) {
                 // 🛡️ VERİ GÜVENLİĞİ: Güvenli giriş
                 clearScreen();
-                std::cout << u8"\n=== GİRİŞ YAP ===\n";
+                std::cout << u8"\n=== Giris Yap ===\n";
                 std::string username;
                 
-                std::cout << u8"Kullanıcı adı: ";
+                std::cout << u8"Kullanici adi: ";
                 std::getline(std::cin, username);
                 
-                std::cout << u8"Şifre: ";
+                std::cout << u8"Sifre: ";
                 std::string password = getPasswordMasked();
 
                 // 🛡️ VERİ GÜVENLİĞİ: SecureString ile password yönetimi (data_security modülü)
@@ -242,18 +202,18 @@ namespace {
                 
                 int userId = auth.loginUser(db, username, securePassword.get());
                 if (userId > 0) {
-                    std::cout << u8"\n✓ Giriş başarılı! Hoş geldiniz, " << username << "!\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n✓ Giris basarili! Hos geldiniz, " << username << "!\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                     
                     // Hassas verileri temizle
                     password.clear();
                     password.shrink_to_fit();
                     
-                    return userId; // Başarılı giriş
+                    return userId; // Basarili giris
                 } else {
-                    std::cout << u8"\n⚠ Giriş başarısız! Kullanıcı adı veya şifre hatalı.\n";
-                    std::cout << u8"Devam etmek için Enter tuşuna basın...";
+                    std::cout << u8"\n⚠ Giris basarisiz! Kullanici adi veya sifre hatali.\n";
+                    std::cout << u8"Devam etmek icin Enter tusuna basin...";
                     std::cin.get();
                 }
                 
@@ -262,7 +222,7 @@ namespace {
                 password.shrink_to_fit();
             }
             else {
-                std::cout << u8"Geçersiz seçim!\n";
+                std::cout << u8"Gecersiz secim!\n";
             }
         }
     }
@@ -320,18 +280,18 @@ void runApplication() {
     }
 #endif
     
-    // Veritabanını aç ve tabloları oluştur
+    // Veritabanini ac ve tablolari olustur
     if (db.open(dbFilePath)) {
         if (db.createTables()) {
             dbOpened = true;
-            std::cout << u8"✓ Veritabanı başarıyla açıldı ve hazır.\n";
-            std::cout << u8"📂 Veritabanı dosyası: " << dbFilePath << "\n";
+            std::cout << u8"✓ Veritabani basariyla acildi ve hazir.\n";
+            std::cout << u8"📂 Veritabani dosyasi: " << dbFilePath << "\n";
         } else {
-            std::cout << u8"⚠ Veritabanı tabloları oluşturulamadı: " << db.getLastError() << "\n";
+            std::cout << u8"⚠ Veritabani tablolari olusturulamadi: " << db.getLastError() << "\n";
         }
     } else {
-        std::cout << u8"⚠ Veritabanı açılamadı: " << db.getLastError() << "\n";
-        std::cout << u8"Veriler yalnızca bu oturum için geçerli olacak.\n";
+        std::cout << u8"⚠ Veritabani acilamadi: " << db.getLastError() << "\n";
+        std::cout << u8"Veriler yalnizca bu oturum icin gecerli olacak.\n";
     }
 
     // Kullanıcı kimlik doğrulama
@@ -344,12 +304,12 @@ void runApplication() {
         currentUserId = showAuthMenu(db, auth);
         
         if (currentUserId <= 0) {
-            // Kullanıcı çıkış yaptı
-            std::cout << u8"\nGüle güle!\n";
+            // Kullanici cikis yapti
+            std::cout << u8"\nGule gule!\n";
             return;
         }
 
-        // Kullanıcı bilgilerini al
+        // Kullanici bilgilerini al
         User currentUser;
         if (auth.getUserById(db, currentUserId, currentUser)) {
             currentUsername = currentUser.username;
@@ -367,8 +327,8 @@ void runApplication() {
         portfolio.loadFromDatabase(db, currentUserId);
         goals.loadFromDatabase(db, currentUserId);
         debts.loadFromDatabase(db, currentUserId);
-        std::cout << u8"\n✓ Verileriniz yüklendi.\n";
-        std::cout << u8"Devam etmek için Enter tuşuna basın...";
+        std::cout << u8"\n✓ Verileriniz yuklendi.\n";
+        std::cout << u8"Devam etmek icin Enter tusuna basin...";
         std::cin.get();
     }
 
@@ -384,31 +344,25 @@ void runApplication() {
         if (sel == 0) break;
 
         switch (sel) {
-        case 1: { // ------- BÜTÇE -------
+        case 1: { // ------- BUTCE -------
             clearScreen();
-#ifdef _WIN32
-            setColor(10); // Açık yeşil başlık
-            std::cout << "-- Bütçe --\n";
-            resetColor();
-#else
-            std::cout << "-- Bütçe --\n";
-#endif
+            std::cout << "-- Butce --\n";
             std::cout << "1) Gelir ekle\n"
                 "2) Gider ekle\n"
                 "3) Kategori limiti belirle\n"
-                "4) Özet/uyarılar\n";
-            int s; if (!readIntSafe("Seçim: ", s)) break;
+                "4) Ozet/uyarilar\n";
+            int s; if (!readIntSafe("Secim: ", s)) break;
 
             if (s == 1) {
-                double a; std::cout << "Gelir tutarı: ";
+                double a; std::cout << "Gelir tutari: ";
                 if (!(std::cin >> a)) { clearCin(); break; } clearCin();
                 budget.addIncome(a);
                 std::cout << u8"✓ Gelir eklendi.\n";
                 if (dbOpened) {
                     if (budget.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
@@ -421,9 +375,9 @@ void runApplication() {
                 std::cout << u8"✓ Gider eklendi.\n";
                 if (dbOpened) {
                     if (budget.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
@@ -433,12 +387,12 @@ void runApplication() {
                 std::cout << "Limit: ";
                 if (!(std::cin >> lim)) { clearCin(); break; } clearCin();
                 budget.setCategoryLimit(cat, lim);
-                std::cout << u8"✓ Limit ayarlandı.\n";
+                std::cout << u8"✓ Limit ayarlandi.\n";
                 if (dbOpened) {
                     if (budget.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
@@ -452,18 +406,14 @@ void runApplication() {
                     if (!alert.empty()) std::cout << alert << "\n";
                 }
             }
-            std::cout << "Devam etmek için Enter...\n"; std::cin.get();
+            std::cout << "Devam etmek icin Enter...\n"; std::cin.get();
             break;
         }
-        case 2: { // ------- PORTFÖY -------
+        case 2: { // ------- PORTFOY -------
             clearScreen();
-#ifdef _WIN32
-            setColor(10); std::cout << "-- Portföy --\n"; resetColor();
-#else
-            std::cout << "-- Portföy --\n";
-#endif
-            std::cout << "1) Yatırım ekle\n2) Özet ve öneri\n";
-            int s; if (!readIntSafe("Seçim: ", s)) break;
+            std::cout << "-- Portfoy --\n";
+            std::cout << "1) Yatirim ekle\n2) Ozet ve oneri\n";
+            int s; if (!readIntSafe("Secim: ", s)) break;
 
             if (s == 1) {
                 Investment inv{};
@@ -475,33 +425,29 @@ void runApplication() {
                 std::cout << "Maliyet (birim): ";
                 if (!(std::cin >> inv.costBasisPerUnit)) { clearCin(); break; } clearCin();
                 portfolio.addInvestment(inv);
-                std::cout << u8"✓ Yatırım eklendi.\n";
+                std::cout << u8"✓ Yatirim eklendi.\n";
                 if (dbOpened) {
                     if (portfolio.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
             else if (s == 2) {
-                std::cout << "Toplam değer: " << portfolio.getTotalMarketValue() << "\n";
+                std::cout << "Toplam deger: " << portfolio.getTotalMarketValue() << "\n";
                 std::cout << "Toplam maliyet: " << portfolio.getTotalCost() << "\n";
-                std::cout << "Gerçekleşmemiş PnL: " << portfolio.getTotalUnrealizedPnL() << "\n";
-                std::cout << "Öneri: " << portfolio.getBasicSuggestion() << "\n";
+                std::cout << "Gerceklesmemis PnL: " << portfolio.getTotalUnrealizedPnL() << "\n";
+                std::cout << "Oneri: " << portfolio.getBasicSuggestion() << "\n";
             }
-            std::cout << "Devam etmek için Enter...\n"; std::cin.get();
+            std::cout << "Devam etmek icin Enter...\n"; std::cin.get();
             break;
         }
         case 3: { // ------- HEDEFLER -------
             clearScreen();
-#ifdef _WIN32
-            setColor(10); std::cout << "-- Hedefler --\n"; resetColor();
-#else
             std::cout << "-- Hedefler --\n";
-#endif
-            std::cout << "1) Hedef ekle\n2) Katkı yap\n3) İlerleme\n";
-            int s; if (!readIntSafe("Seçim: ", s)) break;
+            std::cout << "1) Hedef ekle\n2) Katki yap\n3) Ilerleme\n";
+            int s; if (!readIntSafe("Secim: ", s)) break;
 
             if (s == 1) {
                 std::string n; double t;
@@ -512,24 +458,24 @@ void runApplication() {
                 std::cout << u8"✓ Hedef eklendi.\n";
                 if (dbOpened) {
                     if (goals.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
             else if (s == 2) {
                 std::string n; double a;
-                std::cout << "Hedef adı: "; std::getline(std::cin, n);
-                std::cout << "Katkı tutarı: ";
+                std::cout << "Hedef adi: "; std::getline(std::cin, n);
+                std::cout << "Katki tutari: ";
                 if (!(std::cin >> a)) { clearCin(); break; } clearCin();
                 goals.contribute(n, a);
-                std::cout << u8"✓ Katkı işlendi.\n";
+                std::cout << u8"✓ Katki islendi.\n";
                 if (dbOpened) {
                     if (goals.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
@@ -540,65 +486,61 @@ void runApplication() {
                         << "% (" << g.savedAmount << "/" << g.targetAmount << ")\n";
                 }
             }
-            std::cout << "Devam etmek için Enter...\n"; std::cin.get();
+            std::cout << "Devam etmek icin Enter...\n"; std::cin.get();
             break;
         }
-        case 4: { // ------- BORÇLAR -------
+        case 4: { // ------- BORCLAR -------
             clearScreen();
-#ifdef _WIN32
-            setColor(10); std::cout << "-- Borçlar --\n"; resetColor();
-#else
-            std::cout << "-- Borçlar --\n";
-#endif
-            std::cout << "1) Borç ekle\n2) Özet ve strateji\n";
-            int s; if (!readIntSafe("Seçim: ", s)) break;
+            std::cout << "-- Borclar --\n";
+            std::cout << "1) Borc ekle\n2) Ozet ve strateji\n";
+            int s; if (!readIntSafe("Secim: ", s)) break;
 
             if (s == 1) {
                 Debt d{};
-                std::cout << "Borç adı: "; std::getline(std::cin, d.name);
+                std::cout << "Borc adi: "; std::getline(std::cin, d.name);
                 std::cout << "Anapara: ";
                 if (!(std::cin >> d.principal)) { clearCin(); break; } clearCin();
-                std::cout << "Yıllık faiz %: ";
+                std::cout << "Yillik faiz %: ";
                 if (!(std::cin >> d.annualRatePercent)) { clearCin(); break; } clearCin();
-                std::cout << "Asgari aylık ödeme: ";
+                std::cout << "Asgari aylik odeme: ";
                 if (!(std::cin >> d.minMonthlyPayment)) { clearCin(); break; } clearCin();
                 d.paidSoFar = 0.0;
                 debts.addDebt(d);
-                std::cout << u8"✓ Borç eklendi.\n";
+                std::cout << u8"✓ Borc eklendi.\n";
                 if (dbOpened) {
                     if (debts.saveToDatabase(db, currentUserId)) {
-                        std::cout << u8"💾 Veritabanına kaydedildi.\n";
+                        std::cout << u8"💾 Veritabanina kaydedildi.\n";
                     } else {
-                        std::cout << u8"⚠ Veritabanına kaydedilemedi!\n";
+                        std::cout << u8"⚠ Veritabanina kaydedilemedi!\n";
                     }
                 }
             }
             else if (s == 2) {
                 std::cout << "Toplam anapara: " << debts.getTotalPrincipal() << "\n";
-                std::cout << "Tahmini aylık faiz: " << debts.getEstimatedMonthlyInterest() << "\n";
+                std::cout << "Tahmini aylik faiz: " << debts.getEstimatedMonthlyInterest() << "\n";
                 std::cout << debts.getBasicPaydownSuggestion() << "\n";
             }
-            std::cout << "Devam etmek için Enter...\n"; std::cin.get();
+            std::cout << "Devam etmek icin Enter...\n"; std::cin.get();
             break;
         }
         default:
-            std::cout << "Geçersiz seçim.\n";
-            std::cout << "Devam etmek için Enter...\n"; std::cin.get();
+            std::cout << "Gecersiz secim.\n";
+            std::cout << "Devam etmek icin Enter...\n"; std::cin.get();
             break;
         }
     }
 
-    // 💾 Çıkış öncesi tüm verileri kaydet
+    // 💾 Cikis oncesi tum verileri kaydet
     if (dbOpened && currentUserId > 0) {
         std::cout << u8"\n💾 Verileriniz kaydediliyor...\n";
         bool saveSuccess = true;
         
         if (!budget.saveToDatabase(db, currentUserId)) {
-            std::cout << u8"⚠ Bütçe verileri kaydedilemedi!\n";
+            std::cout << u8"⚠ Butce verileri kaydedilemedi!\n";
             saveSuccess = false;
         }
         if (!portfolio.saveToDatabase(db, currentUserId)) {
-            std::cout << u8"⚠ Portföy verileri kaydedilemedi!\n";
+            std::cout << u8"⚠ Portfoy verileri kaydedilemedi!\n";
             saveSuccess = false;
         }
         if (!goals.saveToDatabase(db, currentUserId)) {
@@ -606,16 +548,16 @@ void runApplication() {
             saveSuccess = false;
         }
         if (!debts.saveToDatabase(db, currentUserId)) {
-            std::cout << u8"⚠ Borç verileri kaydedilemedi!\n";
+            std::cout << u8"⚠ Borc verileri kaydedilemedi!\n";
             saveSuccess = false;
         }
         
         if (saveSuccess) {
-            std::cout << u8"✓ Tüm verileriniz başarıyla kaydedildi.\n";
+            std::cout << u8"✓ Tum verileriniz basariyla kaydedildi.\n";
         }
     }
 
-    std::cout << u8"\nGüle güle!\n";
+    std::cout << u8"\nGule gule!\n";
 }
 
 int main() {

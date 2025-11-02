@@ -10,6 +10,8 @@
 #include "../../personal/header/database.h"
 // 🛡️ VERİ GÜVENLİĞİ: Merkezi güvenlik modülü
 #include "../../personal/header/data_security.hpp"
+// 🛡️ RASP: Runtime Application Self-Protection modülü
+#include "../../personal/header/rasp_protection.hpp"
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -617,6 +619,15 @@ void runApplication() {
 }
 
 int main() {
+    // 🛡️ RASP: Runtime Application Self-Protection başlat
+    // Bu çağrı, uygulama başlamadan önce güvenlik kontrollerini yapar:
+    // - Anti-debug kontrolü (debugger tespiti)
+    // - Checksum doğrulama (kod bütünlüğü kontrolü)
+    // Eğer güvenlik ihlali tespit edilirse, uygulama terminate edilir.
+    Kerem::personal::rasp::init();
+    
+    // Eğer init() başarılıysa, normal uygulama çalışır
+    // Eğer güvenlik ihlali varsa, zaten terminate olmuştur (buraya gelmez)
     runApplication();
     return 0;
 }

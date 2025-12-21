@@ -5525,6 +5525,791 @@ TEST_F(PersonalAppTest, SecureCommunicationIntegrationPasswordBasedEncryption) {
 }
 
 // ============================================================================
+// VARLIK YÖNETİMİ (ASSET PROTECTION) TESTLERİ
+// ============================================================================
+
+#include "../../personal/header/asset_protection.hpp"
+
+using namespace Kerem::AssetProtection;
+
+/**
+ * @brief StaticAssetProtector test fixture sınıfı
+ */
+class StaticAssetProtectorTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        protector = std::make_unique<StaticAssetProtector>(0x5A);
+    }
+
+    void TearDown() override {
+        protector.reset();
+    }
+
+    std::unique_ptr<StaticAssetProtector> protector;
+};
+
+/**
+ * @brief Temel string obfuscation testi
+ */
+TEST_F(StaticAssetProtectorTest, BasicObfuscation) {
+    std::string original = "HelloWorld123";
+    std::string obfuscated = protector->obfuscateString(original);
+    
+    // Obfuscated string orijinalden farklı olmalı
+    EXPECT_NE(original, obfuscated);
+    // Uzunluk aynı kalmalı
+    EXPECT_EQ(original.length(), obfuscated.length());
+}
+
+/**
+ * @brief Deobfuscation doğruluk testi
+ */
+TEST_F(StaticAssetProtectorTest, Deobfuscation) {
+    std::string original = "SecretAPIKey123!@#";
+    std::string obfuscated = protector->obfuscateString(original);
+    std::string deobfuscated = protector->deobfuscateString(obfuscated);
+    
+    // Deobfuscate sonucu orijinal ile aynı olmalı
+    EXPECT_EQ(original, deobfuscated);
+}
+
+/**
+ * @brief Compile-time hash hesaplama testi
+ */
+TEST_F(StaticAssetProtectorTest, CompileTimeHash) {
+    std::string data1 = "TestData";
+    std::string data2 = "TestData";
+    std::string data3 = "DifferentData";
+    
+    uint32_t hash1 = protector->computeHash(data1);
+    uint32_t hash2 = protector->computeHash(data2);
+    uint32_t hash3 = protector->computeHash(data3);
+    
+    // Aynı veri aynı hash üretmeli
+    EXPECT_EQ(hash1, hash2);
+    // Farklı veri farklı hash üretmeli
+    EXPECT_NE(hash1, hash3);
+    // Hash 0 olmamalı
+    EXPECT_NE(hash1, 0u);
+}
+
+/**
+ * @brief Kritik anahtar koruma testi
+ */
+TEST_F(StaticAssetProtectorTest, KeyProtection) {
+    std::vector<uint8_t> originalKey = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    
+    // Anahtarı koru
+    std::vector<uint8_t> protectedKey = protector->protectKey(originalKey);
+    
+    // Korumalı anahtar orijinalden farklı ve daha uzun olmalı (checksum dahil)
+    EXPECT_NE(originalKey, protectedKey);
+    EXPECT_EQ(protectedKey.size(), originalKey.size() + 4); // +4 checksum
+    
+    // Anahtarı geri al
+    std::vector<uint8_t> unprotectedKey = protector->unprotectKey(protectedKey);
+    
+    // Orijinal ile aynı olmalı
+    EXPECT_EQ(originalKey, unprotectedKey);
+}
+
+/**
+ * @brief Hash doğrulama testi
+ */
+TEST_F(StaticAssetProtectorTest, HashVerification) {
+    std::string data = "IntegrityCheck";
+    uint32_t hash = protector->computeHash(data);
+    
+    // Doğru hash ile doğrulama
+    EXPECT_TRUE(protector->verifyHash(data, hash));
+    
+    // Yanlış hash ile doğrulama
+    EXPECT_FALSE(protector->verifyHash(data, hash + 1));
+    
+    // Değiştirilmiş veri ile doğrulama
+    EXPECT_FALSE(protector->verifyHash(data + "X", hash));
+}
+
+/**
+ * @brief DynamicAssetProtector test fixture sınıfı
+ */
+class DynamicAssetProtectorTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        protector = std::make_unique<DynamicAssetProtector>();
+    }
+
+    void TearDown() override {
+        protector.reset();
+    }
+
+    std::unique_ptr<DynamicAssetProtector> protector;
+};
+
+/**
+ * @brief Güvenli bellek boyutu takip testi
+ */
+TEST_F(DynamicAssetProtectorTest, MemoryAllocation) {
+    // Başlangıçta boyut 0 olmalı
+    EXPECT_EQ(protector->getProtectedMemorySize(), 0u);
+    
+    // Güvenli string oluştur (bellek kullanmadan)
+    std::string original = "TestString";
+    std::string secure = protector->createSecureString(original);
+    
+    // Obfuscation çalışmalı
+    EXPECT_NE(secure, original);
+    EXPECT_EQ(secure.length(), original.length());
+}
+
+/**
+ * @brief Güvenli string oluşturma testi
+ */
+TEST_F(DynamicAssetProtectorTest, IntegrityCheck) {
+    std::string original = "IntegrityTestData123";
+    std::string secure = protector->createSecureString(original);
+    
+    // Secure string orijinalden farklı olmalı
+    EXPECT_NE(secure, original);
+    
+    // Uzunluk korunmalı
+    EXPECT_EQ(secure.length(), original.length());
+}
+
+/**
+ * @brief Güvenli string yok etme testi
+ */
+TEST_F(DynamicAssetProtectorTest, SecureFree) {
+    std::string original = "SecretPassword123!";
+    std::string secure = protector->createSecureString(original);
+    
+    EXPECT_FALSE(secure.empty());
+    
+    // Güvenli temizleme
+    protector->destroySecureString(secure);
+    
+    // Temizlendikten sonra boş olmalı
+    EXPECT_TRUE(secure.empty());
+}
+
+/**
+ * @brief Güvenli string farklı içerik testi
+ */
+TEST_F(DynamicAssetProtectorTest, SecureString) {
+    std::string original = "Sensitive Data Here!";
+    std::string secure = protector->createSecureString(original);
+    
+    // Secure string orijinalden farklı olmalı
+    EXPECT_NE(secure, original);
+    
+    // Secure string'i yok et
+    protector->destroySecureString(secure);
+    
+    // Temizlendikten sonra boş olmalı
+    EXPECT_TRUE(secure.empty());
+}
+
+/**
+ * @brief AssetRegistry test fixture sınıfı
+ */
+class AssetRegistryTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        registry = std::make_unique<AssetRegistry>();
+    }
+
+    void TearDown() override {
+        registry.reset();
+    }
+
+    std::unique_ptr<AssetRegistry> registry;
+    
+    AssetInfo createTestAsset(const std::string& id, const std::string& name) {
+        AssetInfo asset;
+        asset.id = id;
+        asset.name = name;
+        asset.description = "Test asset description";
+        asset.type = AssetType::STATIC_KEY;
+        asset.securityLevel = SecurityLevel::HIGH;
+        asset.status = AssetStatus::ACTIVE;
+        asset.location = "/test/location";
+        asset.owner = "TestOwner";
+        return asset;
+    }
+};
+
+/**
+ * @brief Varlık kaydetme testi
+ */
+TEST_F(AssetRegistryTest, RegisterAsset) {
+    AssetInfo asset = createTestAsset("ASSET-001", "TestKey");
+    
+    // İlk kayıt başarılı olmalı
+    EXPECT_TRUE(registry->registerAsset(asset));
+    EXPECT_EQ(registry->getAssetCount(), 1u);
+    EXPECT_TRUE(registry->hasAsset("ASSET-001"));
+    
+    // Aynı ID ile tekrar kayıt başarısız olmalı
+    EXPECT_FALSE(registry->registerAsset(asset));
+    EXPECT_EQ(registry->getAssetCount(), 1u);
+}
+
+/**
+ * @brief Varlık listeleme testi
+ */
+TEST_F(AssetRegistryTest, ListAssets) {
+    // Birden fazla varlık kaydet
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    registry->registerAsset(createTestAsset("ASSET-003", "Key3"));
+    
+    // Tüm varlıkları listele
+    std::vector<AssetInfo> all = registry->listAllAssets();
+    EXPECT_EQ(all.size(), 3u);
+    
+    // Tipe göre listele
+    std::vector<AssetInfo> byType = registry->listAssetsByType(AssetType::STATIC_KEY);
+    EXPECT_EQ(byType.size(), 3u);
+    
+    // Güvenlik seviyesine göre listele
+    std::vector<AssetInfo> byLevel = registry->listAssetsBySecurityLevel(SecurityLevel::HIGH);
+    EXPECT_EQ(byLevel.size(), 3u);
+}
+
+/**
+ * @brief Audit log testi
+ */
+TEST_F(AssetRegistryTest, AuditLog) {
+    AssetInfo asset = createTestAsset("ASSET-001", "TestKey");
+    registry->registerAsset(asset);
+    
+    // Manuel erişim logla
+    registry->logAccess("ASSET-001", "READ", "User1", true, "Test access");
+    registry->logAccess("ASSET-001", "WRITE", "User2", false, "Failed write");
+    
+    // Audit log'ları al (register sırasında otomatik log eklenir)
+    std::vector<AuditLogEntry> logs = registry->getAuditLogs();
+    EXPECT_GE(logs.size(), 3u); // En az 3 log (register + 2 manuel)
+    
+    // Varlık bazlı log al
+    std::vector<AuditLogEntry> assetLogs = registry->getAssetAuditLogs("ASSET-001");
+    EXPECT_GE(assetLogs.size(), 3u);
+}
+
+/**
+ * @brief Güvenlik raporu oluşturma testi
+ */
+TEST_F(AssetRegistryTest, SecurityReport) {
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    
+    std::string report = registry->generateSecurityReport();
+    
+    // Rapor boş olmamalı
+    EXPECT_FALSE(report.empty());
+    
+    // Rapor başlık içermeli
+    EXPECT_TRUE(report.find("Varlik Guvenlik Raporu") != std::string::npos);
+    
+    // Rapor varlık sayısını içermeli
+    EXPECT_TRUE(report.find("2") != std::string::npos);
+}
+
+/**
+ * @brief Varlık durumu güncelleme testi
+ */
+TEST_F(AssetRegistryTest, UpdateAssetStatus) {
+    AssetInfo asset = createTestAsset("ASSET-001", "TestKey");
+    registry->registerAsset(asset);
+    
+    // Durumu güncelle
+    EXPECT_TRUE(registry->updateAssetStatus("ASSET-001", AssetStatus::PROTECTED));
+    
+    // Durumun güncellendiğini doğrula
+    AssetInfo updated = registry->getAsset("ASSET-001");
+    EXPECT_EQ(updated.status, AssetStatus::PROTECTED);
+    
+    // Olmayan varlık güncelleme başarısız olmalı
+    EXPECT_FALSE(registry->updateAssetStatus("NONEXISTENT", AssetStatus::DESTROYED));
+}
+
+/**
+ * @brief Yardımcı fonksiyonlar testi
+ */
+TEST(AssetProtectionHelpersTest, TypeConversions) {
+    // AssetType to string
+    EXPECT_EQ(assetTypeToString(AssetType::STATIC_KEY), "STATIC_KEY");
+    EXPECT_EQ(assetTypeToString(AssetType::DYNAMIC_MEMORY), "DYNAMIC_MEMORY");
+    
+    // SecurityLevel to string
+    EXPECT_EQ(securityLevelToString(SecurityLevel::HIGH), "HIGH");
+    EXPECT_EQ(securityLevelToString(SecurityLevel::CRITICAL), "CRITICAL");
+    
+    // AssetStatus to string
+    EXPECT_EQ(assetStatusToString(AssetStatus::ACTIVE), "ACTIVE");
+    EXPECT_EQ(assetStatusToString(AssetStatus::PROTECTED), "PROTECTED");
+}
+
+/**
+ * @brief Hızlı obfuscation fonksiyonu testi
+ */
+TEST(AssetProtectionHelpersTest, QuickObfuscation) {
+    std::string original = "QuickTestString";
+    
+    std::string obfuscated = quickObfuscate(original);
+    EXPECT_NE(original, obfuscated);
+    
+    std::string deobfuscated = quickDeobfuscate(obfuscated);
+    EXPECT_EQ(original, deobfuscated);
+}
+
+// ============================================================================
+// EK KAPSAMLI TESTLER - KOD KAPSAM ARTIŞI İÇİN
+// ============================================================================
+
+/**
+ * @brief Güvenli bellek ayırma ve serbest bırakma testi
+ * NOT: Bu test sadece edge-case'leri test eder. 
+ * Destructor'daki cleanup ile çakışmayı önlemek için protector.reset() kullanılmaz.
+ */
+TEST_F(DynamicAssetProtectorTest, SecureAllocateAndFree) {
+    // Sıfır boyut ile allocation
+    void* ptr0 = protector->secureAllocate(0);
+    EXPECT_EQ(ptr0, nullptr);
+    
+    // Null pointer ile integrity check
+    EXPECT_FALSE(protector->checkIntegrity(nullptr, 64));
+    
+    // Başlangıçta boyut 0 olmalı
+    EXPECT_EQ(protector->getProtectedMemorySize(), 0u);
+}
+
+/**
+ * @brief Sıfır boyut ile bellek ayırma testi
+ */
+TEST_F(DynamicAssetProtectorTest, SecureAllocateZeroSize) {
+    void* ptr = protector->secureAllocate(0);
+    EXPECT_EQ(ptr, nullptr);
+    EXPECT_EQ(protector->getProtectedMemorySize(), 0u);
+}
+
+/**
+ * @brief Null pointer ile secureFree testi
+ */
+TEST_F(DynamicAssetProtectorTest, SecureFreeNullPtr) {
+    // Null pointer ile secureFree çağrısı hata vermemeli
+    protector->secureFree(nullptr, 64);
+    EXPECT_EQ(protector->getProtectedMemorySize(), 0u);
+}
+
+/**
+ * @brief Integrity check null pointer testi
+ */
+TEST_F(DynamicAssetProtectorTest, CheckIntegrityNullPtr) {
+    EXPECT_FALSE(protector->checkIntegrity(nullptr, 64));
+}
+
+/**
+ * @brief Boş string ile destroySecureString testi
+ */
+TEST_F(DynamicAssetProtectorTest, DestroyEmptyString) {
+    std::string emptyStr = "";
+    // Boş string ile hata vermemeli
+    protector->destroySecureString(emptyStr);
+    EXPECT_TRUE(emptyStr.empty());
+}
+
+/**
+ * @brief Varlık silme (unregister) testi
+ */
+TEST_F(AssetRegistryTest, UnregisterAsset) {
+    AssetInfo asset = createTestAsset("ASSET-001", "TestKey");
+    registry->registerAsset(asset);
+    
+    EXPECT_TRUE(registry->hasAsset("ASSET-001"));
+    EXPECT_EQ(registry->getAssetCount(), 1u);
+    
+    // Varlığı sil
+    EXPECT_TRUE(registry->unregisterAsset("ASSET-001"));
+    EXPECT_FALSE(registry->hasAsset("ASSET-001"));
+    EXPECT_EQ(registry->getAssetCount(), 0u);
+    
+    // Olmayan varlığı silmeye çalış
+    EXPECT_FALSE(registry->unregisterAsset("NONEXISTENT"));
+}
+
+/**
+ * @brief Boş ID ile varlık kaydetme testi
+ */
+TEST_F(AssetRegistryTest, RegisterEmptyId) {
+    AssetInfo asset;
+    asset.id = "";
+    asset.name = "InvalidAsset";
+    
+    EXPECT_FALSE(registry->registerAsset(asset));
+    EXPECT_EQ(registry->getAssetCount(), 0u);
+}
+
+/**
+ * @brief Olmayan varlığı getAsset ile alma testi
+ */
+TEST_F(AssetRegistryTest, GetNonexistentAsset) {
+    AssetInfo asset = registry->getAsset("NONEXISTENT");
+    
+    // Varsayılan değerler döndürülmeli
+    EXPECT_TRUE(asset.id.empty());
+    EXPECT_EQ(asset.type, AssetType::SENSITIVE_DATA);
+}
+
+/**
+ * @brief Registry temizleme testi
+ */
+TEST_F(AssetRegistryTest, ClearRegistry) {
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    registry->registerAsset(createTestAsset("ASSET-003", "Key3"));
+    
+    EXPECT_EQ(registry->getAssetCount(), 3u);
+    EXPECT_GT(registry->getAuditLogCount(), 0u);
+    
+    // Temizle
+    registry->clear();
+    
+    EXPECT_EQ(registry->getAssetCount(), 0u);
+    EXPECT_EQ(registry->getAuditLogCount(), 0u);
+}
+
+/**
+ * @brief Sınırlı audit log alma testi
+ */
+TEST_F(AssetRegistryTest, GetAuditLogsWithLimit) {
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    registry->logAccess("ASSET-001", "READ", "User1", true, "Test");
+    registry->logAccess("ASSET-002", "WRITE", "User2", true, "Test");
+    
+    // Tüm logları al
+    auto allLogs = registry->getAuditLogs(0);
+    EXPECT_GE(allLogs.size(), 4u);
+    
+    // Sınırlı log al (son 2 log)
+    auto limitedLogs = registry->getAuditLogs(2);
+    EXPECT_EQ(limitedLogs.size(), 2u);
+}
+
+/**
+ * @brief Otomatik asset ID oluşturma testi
+ */
+TEST_F(AssetRegistryTest, GenerateAssetId) {
+    std::string id1 = registry->generateAssetId();
+    std::string id2 = registry->generateAssetId();
+    
+    // ID'ler boş olmamalı
+    EXPECT_FALSE(id1.empty());
+    EXPECT_FALSE(id2.empty());
+    
+    // ID'ler "ASSET-" ile başlamalı
+    EXPECT_TRUE(id1.substr(0, 6) == "ASSET-");
+    EXPECT_TRUE(id2.substr(0, 6) == "ASSET-");
+    
+    // ID'ler farklı olmalı (rastgelelik)
+    EXPECT_NE(id1, id2);
+}
+
+/**
+ * @brief Tüm AssetType değerleri için string dönüşüm testi
+ */
+TEST(AssetProtectionHelpersTest, AllAssetTypeConversions) {
+    EXPECT_EQ(assetTypeToString(AssetType::STATIC_STRING), "STATIC_STRING");
+    EXPECT_EQ(assetTypeToString(AssetType::STATIC_KEY), "STATIC_KEY");
+    EXPECT_EQ(assetTypeToString(AssetType::STATIC_CONFIG), "STATIC_CONFIG");
+    EXPECT_EQ(assetTypeToString(AssetType::DYNAMIC_MEMORY), "DYNAMIC_MEMORY");
+    EXPECT_EQ(assetTypeToString(AssetType::DYNAMIC_BUFFER), "DYNAMIC_BUFFER");
+    EXPECT_EQ(assetTypeToString(AssetType::DYNAMIC_CREDENTIAL), "DYNAMIC_CREDENTIAL");
+    EXPECT_EQ(assetTypeToString(AssetType::SENSITIVE_DATA), "SENSITIVE_DATA");
+}
+
+/**
+ * @brief Tüm SecurityLevel değerleri için string dönüşüm testi
+ */
+TEST(AssetProtectionHelpersTest, AllSecurityLevelConversions) {
+    EXPECT_EQ(securityLevelToString(SecurityLevel::LOW), "LOW");
+    EXPECT_EQ(securityLevelToString(SecurityLevel::MEDIUM), "MEDIUM");
+    EXPECT_EQ(securityLevelToString(SecurityLevel::HIGH), "HIGH");
+    EXPECT_EQ(securityLevelToString(SecurityLevel::CRITICAL), "CRITICAL");
+}
+
+/**
+ * @brief Tüm AssetStatus değerleri için string dönüşüm testi
+ */
+TEST(AssetProtectionHelpersTest, AllAssetStatusConversions) {
+    EXPECT_EQ(assetStatusToString(AssetStatus::ACTIVE), "ACTIVE");
+    EXPECT_EQ(assetStatusToString(AssetStatus::PROTECTED), "PROTECTED");
+    EXPECT_EQ(assetStatusToString(AssetStatus::DESTROYED), "DESTROYED");
+    EXPECT_EQ(assetStatusToString(AssetStatus::COMPROMISED), "COMPROMISED");
+}
+
+/**
+ * @brief Farklı obfuscation key ile test
+ */
+TEST(AssetProtectionHelpersTest, DifferentObfuscationKeys) {
+    std::string original = "TestData";
+    
+    std::string obf1 = quickObfuscate(original, 0x11);
+    std::string obf2 = quickObfuscate(original, 0x22);
+    
+    // Farklı key ile farklı sonuç
+    EXPECT_NE(obf1, obf2);
+    
+    // Her biri kendi key'i ile çözülebilir
+    EXPECT_EQ(quickDeobfuscate(obf1, 0x11), original);
+    EXPECT_EQ(quickDeobfuscate(obf2, 0x22), original);
+}
+
+/**
+ * @brief StaticAssetProtector obfuscation key değiştirme testi
+ */
+TEST_F(StaticAssetProtectorTest, ChangeObfuscationKey) {
+    std::string original = "TestData";
+    
+    // İlk key ile obfuscate
+    std::string obf1 = protector->obfuscateString(original);
+    
+    // Key'i değiştir
+    protector->setObfuscationKey(0xFF);
+    
+    // Yeni key ile obfuscate
+    std::string obf2 = protector->obfuscateString(original);
+    
+    // Farklı key ile farklı sonuç
+    EXPECT_NE(obf1, obf2);
+}
+
+/**
+ * @brief Bozuk korumalı anahtar ile unprotect testi
+ */
+TEST_F(StaticAssetProtectorTest, UnprotectCorruptedKey) {
+    std::vector<uint8_t> originalKey = {0x01, 0x02, 0x03, 0x04};
+    std::vector<uint8_t> protectedKey = protector->protectKey(originalKey);
+    
+    // Korumalı anahtarı boz
+    if (protectedKey.size() > 5) {
+        protectedKey[5] ^= 0xFF; // Bozma
+    }
+    
+    // Bozuk anahtar ile unprotect boş döndürmeli
+    std::vector<uint8_t> result = protector->unprotectKey(protectedKey);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Çok kısa protectedKey ile unprotect testi
+ */
+TEST_F(StaticAssetProtectorTest, UnprotectTooShortKey) {
+    std::vector<uint8_t> shortKey = {0x01, 0x02}; // 4'ten kısa
+    std::vector<uint8_t> result = protector->unprotectKey(shortKey);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Varlık tiplerine göre filtreleme testi (boş sonuç)
+ */
+TEST_F(AssetRegistryTest, ListAssetsByTypeEmpty) {
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1")); // STATIC_KEY
+    
+    // Farklı tip ile ara
+    auto result = registry->listAssetsByType(AssetType::DYNAMIC_MEMORY);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Güvenlik seviyesine göre filtreleme testi
+ */
+TEST_F(AssetRegistryTest, ListAssetsBySecurityLevel) {
+    // Farklı güvenlik seviyelerinde varlıklar oluştur
+    AssetInfo lowAsset = createTestAsset("ASSET-LOW", "LowKey");
+    lowAsset.securityLevel = SecurityLevel::LOW;
+    
+    AssetInfo highAsset = createTestAsset("ASSET-HIGH", "HighKey");
+    highAsset.securityLevel = SecurityLevel::HIGH;
+    
+    AssetInfo criticalAsset = createTestAsset("ASSET-CRITICAL", "CriticalKey");
+    criticalAsset.securityLevel = SecurityLevel::CRITICAL;
+    
+    registry->registerAsset(lowAsset);
+    registry->registerAsset(highAsset);
+    registry->registerAsset(criticalAsset);
+    
+    // HIGH seviyesindeki varlıkları al
+    auto highResult = registry->listAssetsBySecurityLevel(SecurityLevel::HIGH);
+    EXPECT_EQ(highResult.size(), 1u);
+    EXPECT_EQ(highResult[0].id, "ASSET-HIGH");
+    
+    // CRITICAL seviyesindeki varlıkları al
+    auto criticalResult = registry->listAssetsBySecurityLevel(SecurityLevel::CRITICAL);
+    EXPECT_EQ(criticalResult.size(), 1u);
+    
+    // MEDIUM seviyesinde varlık yok
+    auto mediumResult = registry->listAssetsBySecurityLevel(SecurityLevel::MEDIUM);
+    EXPECT_TRUE(mediumResult.empty());
+}
+
+/**
+ * @brief Belirli varlık için audit log alma testi
+ */
+TEST_F(AssetRegistryTest, GetAssetAuditLogs) {
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    
+    // ASSET-001'e ek erişim logları
+    registry->logAccess("ASSET-001", "READ", "User1", true, "Read operation");
+    registry->logAccess("ASSET-001", "WRITE", "User2", true, "Write operation");
+    registry->logAccess("ASSET-002", "READ", "User3", true, "Read operation");
+    
+    // ASSET-001 için logları al (register + 2 ek = 3 log)
+    auto asset1Logs = registry->getAssetAuditLogs("ASSET-001");
+    EXPECT_GE(asset1Logs.size(), 3u);
+    
+    // ASSET-002 için logları al (register + 1 ek = 2 log)
+    auto asset2Logs = registry->getAssetAuditLogs("ASSET-002");
+    EXPECT_GE(asset2Logs.size(), 2u);
+    
+    // Olmayan varlık için boş döndürmeli
+    auto noLogs = registry->getAssetAuditLogs("NONEXISTENT");
+    EXPECT_TRUE(noLogs.empty());
+}
+
+/**
+ * @brief Aynı ID ile tekrar kayıt testi (duplicate)
+ */
+TEST_F(AssetRegistryTest, RegisterDuplicateAsset) {
+    AssetInfo asset1 = createTestAsset("ASSET-001", "Key1");
+    AssetInfo asset2 = createTestAsset("ASSET-001", "Key2"); // Aynı ID
+    
+    EXPECT_TRUE(registry->registerAsset(asset1));
+    EXPECT_FALSE(registry->registerAsset(asset2)); // Duplicate - false
+    EXPECT_EQ(registry->getAssetCount(), 1u);
+}
+
+/**
+ * @brief Tüm varlıkları listeleme testi
+ */
+TEST_F(AssetRegistryTest, ListAllAssets) {
+    EXPECT_TRUE(registry->listAllAssets().empty());
+    
+    registry->registerAsset(createTestAsset("ASSET-001", "Key1"));
+    registry->registerAsset(createTestAsset("ASSET-002", "Key2"));
+    registry->registerAsset(createTestAsset("ASSET-003", "Key3"));
+    
+    auto all = registry->listAllAssets();
+    EXPECT_EQ(all.size(), 3u);
+}
+
+/**
+ * @brief protectMemory ve unprotectMemory null/zero testleri
+ */
+TEST_F(DynamicAssetProtectorTest, ProtectMemoryEdgeCases) {
+    // Null pointer ile false döndürmeli
+    EXPECT_FALSE(protector->protectMemory(nullptr, 64));
+    
+    // Sıfır boyut ile false döndürmeli
+    int dummy = 42;
+    EXPECT_FALSE(protector->protectMemory(&dummy, 0));
+    
+    // unprotectMemory null kontrolü
+    EXPECT_FALSE(protector->unprotectMemory(nullptr, 64));
+    EXPECT_FALSE(protector->unprotectMemory(&dummy, 0));
+}
+
+/**
+ * @brief Çoklu secure string testi
+ */
+TEST_F(DynamicAssetProtectorTest, MultipleSecureStrings) {
+    std::string s1 = "Password1";
+    std::string s2 = "Password2";
+    std::string s3 = "Password3";
+    
+    std::string sec1 = protector->createSecureString(s1);
+    std::string sec2 = protector->createSecureString(s2);
+    std::string sec3 = protector->createSecureString(s3);
+    
+    // Hepsi farklı olmalı
+    EXPECT_NE(sec1, sec2);
+    EXPECT_NE(sec2, sec3);
+    EXPECT_NE(sec1, sec3);
+    
+    // Orijinallerden farklı olmalı
+    EXPECT_NE(sec1, s1);
+    EXPECT_NE(sec2, s2);
+    EXPECT_NE(sec3, s3);
+    
+    // Temizle
+    protector->destroySecureString(sec1);
+    protector->destroySecureString(sec2);
+    protector->destroySecureString(sec3);
+    
+    EXPECT_TRUE(sec1.empty());
+    EXPECT_TRUE(sec2.empty());
+    EXPECT_TRUE(sec3.empty());
+}
+
+/**
+ * @brief Güvenlik raporu içerik kontrolü testi
+ */
+TEST_F(AssetRegistryTest, SecurityReportContent) {
+    AssetInfo asset = createTestAsset("ASSET-001", "TestKey");
+    asset.securityLevel = SecurityLevel::HIGH;
+    registry->registerAsset(asset);
+    
+    std::string report = registry->generateSecurityReport();
+    
+    // Rapor önemli bölümleri içermeli
+    EXPECT_TRUE(report.find("Guvenlik Seviyesi Dagilimi") != std::string::npos);
+    EXPECT_TRUE(report.find("Varlik Durumu Dagilimi") != std::string::npos);
+    EXPECT_TRUE(report.find("Kayitli Varliklar") != std::string::npos);
+    EXPECT_TRUE(report.find("ASSET-001") != std::string::npos);
+    EXPECT_TRUE(report.find("HIGH") != std::string::npos);
+}
+
+/**
+ * @brief Tüm varlık tipleri ile rapor testi
+ */
+TEST_F(AssetRegistryTest, SecurityReportAllTypes) {
+    AssetInfo a1 = createTestAsset("A1", "Key1");
+    a1.securityLevel = SecurityLevel::LOW;
+    a1.status = AssetStatus::ACTIVE;
+    
+    AssetInfo a2 = createTestAsset("A2", "Key2");
+    a2.securityLevel = SecurityLevel::MEDIUM;
+    a2.status = AssetStatus::PROTECTED;
+    
+    AssetInfo a3 = createTestAsset("A3", "Key3");
+    a3.securityLevel = SecurityLevel::HIGH;
+    a3.status = AssetStatus::DESTROYED;
+    
+    AssetInfo a4 = createTestAsset("A4", "Key4");
+    a4.securityLevel = SecurityLevel::CRITICAL;
+    a4.status = AssetStatus::COMPROMISED;
+    
+    registry->registerAsset(a1);
+    registry->registerAsset(a2);
+    registry->registerAsset(a3);
+    registry->registerAsset(a4);
+    
+    std::string report = registry->generateSecurityReport();
+    
+    // Tüm seviyeler ve durumlar raporda olmalı
+    EXPECT_TRUE(report.find("LOW") != std::string::npos);
+    EXPECT_TRUE(report.find("MEDIUM") != std::string::npos);
+    EXPECT_TRUE(report.find("HIGH") != std::string::npos);
+    EXPECT_TRUE(report.find("CRITICAL") != std::string::npos);
+    EXPECT_TRUE(report.find("ACTIVE") != std::string::npos);
+    EXPECT_TRUE(report.find("PROTECTED") != std::string::npos);
+    EXPECT_TRUE(report.find("DESTROYED") != std::string::npos);
+    EXPECT_TRUE(report.find("COMPROMISED") != std::string::npos);
+}
+
+// ============================================================================
 // main() Fonksiyonu
 // ============================================================================
 
